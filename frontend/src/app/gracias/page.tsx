@@ -2,8 +2,7 @@
 
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { Suspense } from "react";
-import ReactPixel from "react-facebook-pixel"; // <--- Importar
+import { Suspense } from "react";   
 import { useEffect } from "react";
 
 // Sub-componente para leer la URL de forma segura
@@ -16,12 +15,17 @@ function GraciasContent() {
   // Disparar el evento SOLO una vez cuando carga la página
   useEffect(() => {
     if (transactionId) {
-      ReactPixel.track("Purchase", {
-        currency: "COP",
-        value: 26700, // El valor de la venta
-        content_name: "La Gaceta del Inglés",
-        order_id: transactionId // Para que Facebook no duplique conversiones
-      });
+      // ✅ IMPORT DINÁMICO (Solo se carga en el navegador)
+      import("react-facebook-pixel")
+        .then((x) => x.default)
+        .then((ReactPixel) => {
+          ReactPixel.track("Purchase", {
+            currency: "COP",
+            value: 26700,
+            content_name: "La Gaceta del Inglés",
+            order_id: transactionId
+          });
+        });
     }
   }, [transactionId]);
     

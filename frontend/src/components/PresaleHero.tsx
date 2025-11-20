@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useState } from "react";
-import ReactPixel from "react-facebook-pixel";
+
 
 export default function PresaleHero() {
   const [isLoading, setIsLoading] = useState(false);
@@ -14,8 +14,9 @@ export default function PresaleHero() {
   const FECHA_LANZAMIENTO = "15 de Diciembre, 2025"; 
 
   const handlePurchase = async () => {
-    // 1. 🕵️‍♂️ PIXEL DE META: Rastrear intención de compra
-    // Esto le avisa a Facebook que alguien dio clic en el botón
+    // ✅ IMPORT DINÁMICO
+    const ReactPixel = (await import("react-facebook-pixel")).default;
+    
     ReactPixel.track("InitiateCheckout", {
         currency: "COP",
         value: 26700,
