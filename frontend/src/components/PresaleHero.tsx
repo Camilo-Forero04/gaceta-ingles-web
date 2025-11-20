@@ -4,23 +4,18 @@ import Image from "next/image";
 import { useState } from "react";
 import ReactPixel from "react-facebook-pixel";
 
-
 export default function PresaleHero() {
-
-  
-  
   const [isLoading, setIsLoading] = useState(false);
 
-  // Configuración rápida (luego esto vendrá de una base de datos)
+  // Configuración rápida
   const PRECIO_FULL = 49000;
   const PRECIO_PREVENTA = 26700;
   const AHORRO = Math.round(((PRECIO_FULL - PRECIO_PREVENTA) / PRECIO_FULL) * 100);
   const FECHA_LANZAMIENTO = "15 de Diciembre, 2025"; 
 
-const handlePurchase = async () => {
-
   const handlePurchase = async () => {
-    // 1. DISPARAR EL EVENTO AL INICIO DE LA FUNCIÓN
+    // 1. 🕵️‍♂️ PIXEL DE META: Rastrear intención de compra
+    // Esto le avisa a Facebook que alguien dio clic en el botón
     ReactPixel.track("InitiateCheckout", {
         currency: "COP",
         value: 26700,
@@ -28,26 +23,25 @@ const handlePurchase = async () => {
     });
 
     setIsLoading(true);
-    // ... resto de tu lógica de pago ...
-}
-    
-    // --- MODO SIMULACIÓN ACTIVADO ---
+
+    // 2. 🛠️ MODO SIMULACIÓN (Bypass de Wompi por error de llaves)
     try {
-        // 1. Datos falsos que enviaría Wompi
+        // Datos falsos que enviaría Wompi
         const fakeWompiPayload = {
             data: {
                 transaction: {
                     id: "TRANSACCION-FALSA-" + Date.now(),
-                    reference: "TEST-DEV-" + Date.now(), // <--- La clave mágica
+                    reference: "TEST-DEV-" + Date.now(), // <--- La clave mágica para tu backend
                     amount_in_cents: 2670000,
                     status: "APPROVED",
-                    customer_email: "micorreo@prueba.com" // <--- Pon tu correo aquí para verificar
+                    customer_email: "micorreo@prueba.com" // <--- Puedes cambiarlo para probar
                 }
             }
         };
 
-        // 2. Enviamos el "Webhook Falso" a nuestro propio backend
+        // Enviamos el "Webhook Falso" a nuestro propio backend
         console.log("Simulando pago a nuestro Backend...");
+        
         const response = await fetch('http://localhost:4000/payment/webhook', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -55,24 +49,38 @@ const handlePurchase = async () => {
         });
 
         if (response.ok) {
-            // 3. Si el backend guardó en Supabase, vamos a Gracias
+            // Si el backend guardó en Supabase, vamos a Gracias
             console.log("¡Pago Simulado Exitoso!");
+            // Redirigimos a la página de gracias con el ID falso
             window.location.href = "/gracias?id=" + fakeWompiPayload.data.transaction.id;
         } else {
-            alert("Error guardando en base de datos");
+            alert("Error guardando en base de datos (Revisa la terminal del Backend)");
         }
 
     } catch (e) {
         console.error(e);
+        alert("Error de conexión con el servidor");
     } finally {
         setIsLoading(false);
     }
-    // --------------------------------
     
-    /* --- CÓDIGO REAL DE WOMPI (Comentado por ahora) ---
+    /* --- CÓDIGO REAL DE WOMPI (Guardado para cuando tengas llaves nuevas) ---
+    
     try {
-       const response = await fetch(...)
-       ...
+       const response = await fetch('http://localhost:4000/payment/presale-info');
+       const data = await response.json();
+
+       if (typeof (window as any).WidgetCheckout !== 'undefined') {
+          const checkout = new (window as any).WidgetCheckout({
+            currency: 'COP',
+            amountInCents: Number(data.amountInCents),
+            reference: data.reference,
+            publicKey: data.publicKey,
+            signature: { integrity: data.signature },
+            redirectUrl: 'http://localhost:3000/gracias',
+          });
+          checkout.open((result: any) => { ... });
+       }
     } ...
     */
   };
@@ -145,7 +153,7 @@ const handlePurchase = async () => {
         </div>
       </div>
       
-      {/* Zona de Imagen (Placeholder hasta que tengas el Mockup 3D) */}
+      {/* Zona de Imagen */}
       <div className="lg:absolute lg:inset-y-0 lg:right-0 lg:w-1/2 bg-gray-100 flex items-center justify-center h-64 lg:h-full border-l border-gray-200">
         <div className="text-center p-10">
             <div className="inline-block p-4 rounded-lg bg-white shadow-lg mb-4">

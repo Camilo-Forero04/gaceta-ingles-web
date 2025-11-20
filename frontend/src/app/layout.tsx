@@ -2,7 +2,12 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import Script from "next/script"; // <--- 1. IMPORTAR ESTO
 import "./globals.css";
-import FacebookPixel from "../components/FacebookPixel"; // <--- 1. IMPORTAR
+import dynamic from "next/dynamic";
+
+// Esto desactiva el SSR (Server Side Rendering) para este componente
+const FacebookPixel = dynamic(() => import("../components/FacebookPixel"), { 
+  ssr: false 
+});
 
 const inter = Inter({ subsets: ["latin"] });
 
