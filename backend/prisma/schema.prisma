@@ -1,0 +1,30 @@
+// 1. Configuración de conexión
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// 2. Nuestro Modelo de Datos (La Tabla de Ventas)
+model Order {
+  id            String   @id @default(uuid()) // ID único (ej: 550e8400...)
+  
+  // Datos del Cliente
+  customerEmail String
+  customerName  String?  // El signo ? significa que es opcional
+
+  // Datos del Pago
+  wompiReference String   @unique // La referencia PREVENTA-XXXX
+  wompiTransactionId String? // El ID que Wompi nos da al confirmar
+  status        String    @default("PENDING") // PENDING, APPROVED, DECLINED
+  amount        Int       // Guardamos 2670000 (centavos)
+
+  // Logística Digital
+  isDelivered   Boolean  @default(false) // ¿Ya le enviamos el libro?
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}

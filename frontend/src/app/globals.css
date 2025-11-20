@@ -1,0 +1,8 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Aquí pondremos tus estilos personalizados más adelante si hacen falta */
+html, body {
+  scroll-behavior: smooth; /* Para que al hacer clic en el menú, baje suave */
+}
