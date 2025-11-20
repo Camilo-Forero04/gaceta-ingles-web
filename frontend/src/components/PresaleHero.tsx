@@ -43,7 +43,7 @@ export default function PresaleHero() {
         // Enviamos el "Webhook Falso" a nuestro propio backend
         console.log("Simulando pago a nuestro Backend...");
         
-        const response = await fetch('gaceta-ingles-web-production.up.railway.app', {
+        const response = await fetch('https://gaceta-ingles-web-production.up.railway.app/payment/webhook', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(fakeWompiPayload)
