@@ -1,13 +1,9 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
-import Script from "next/script"; // <--- 1. IMPORTAR ESTO
+import Script from "next/script";
 import "./globals.css";
-import dynamic from "next/dynamic";
-
-// Esto desactiva el SSR (Server Side Rendering) para este componente
-const FacebookPixel = dynamic(() => import("../components/FacebookPixel"), { 
-  ssr: false 
-});
+// IMPORTAMOS EL WRAPPER, NO EL PIXEL DIRECTO NI EL DYNAMIC AQUÍ
+import PixelWrapper from "../components/PixelWrapper"; 
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -24,7 +20,8 @@ export default function RootLayout({
   return (
     <html lang="es">
       <body className={inter.className}>
-        <FacebookPixel />  {/* <--- 2. AGREGAR AQUÍ (Invisible) */}
+        {/* Usamos el componente intermediario seguro */}
+        <PixelWrapper />
         
         {children}
         
