@@ -1,7 +1,7 @@
 "use client"; 
 
 import Image from "next/image";
-mport { useState, Suspense } from "react";
+import { useState, Suspense } from "react";
 import Book3DScene from "./Book3DScene";
 
 
