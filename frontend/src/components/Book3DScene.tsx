@@ -1,55 +1,55 @@
 // frontend/src/components/Book3DScene.tsx
 "use client";
 
-import React, { useRef } from "react";
+import React, { useRef, Suspense } from "react"; // <--- 1. AQUÍ AGREGAMOS Suspense
 import { Canvas, useFrame } from "@react-three/fiber";
 import { useTexture, Environment, Float, ContactShadows } from "@react-three/drei";
 import * as THREE from "three";
 
 function BookModel() {
   const meshRef = useRef<THREE.Mesh>(null);
-  // Cargar la textura de la portada desde la carpeta public
-  const coverTexture = useTexture("/book_cover_texture.png");
-  // Configurar color de fondo de la portada para que coincida con el resto del libro
-  const bookPaperColor = new THREE.Color("#FDFBF7"); // Un blanco hueso similar al fondo de tu portada
+  const coverTexture = useTexture("/Portada.png");
+  
+  // Configuración para que la textura se estire bien si es necesario
+  coverTexture.center.set(0.5, 0.5); 
+  
+  const bookPaperColor = new THREE.Color("#FDFBF7");
 
-  // Animación suave en cada frame
   useFrame((state) => {
     const t = state.clock.getElapsedTime();
     if (meshRef.current) {
-        // Rotación suave en el eje Y
-        meshRef.current.rotation.y = Math.sin(t / 3) * 0.3;
-        // Inclinación muy sutil en X para dinamismo
-        meshRef.current.rotation.x = Math.sin(t / 2) * 0.05;
+        meshRef.current.rotation.y = Math.sin(t / 4) * 0.3;
+        meshRef.current.rotation.x = Math.cos(t / 3) * 0.05;
     }
   });
 
   return (
     <Float 
-      speed={2} // Velocidad de la animación de flotación
-      rotationIntensity={0.5} // Intensidad de la rotación aleatoria
-      floatIntensity={1} // Intensidad de la flotación arriba/abajo
-      floatingRange={[-0.1, 0.1]} // Rango de movimiento
+      speed={2} 
+      rotationIntensity={0.5} 
+      floatIntensity={0.6} 
+      floatingRange={[-0.05, 0.05]}
     >
-      <mesh ref={meshRef} castShadow receiveShadow>
-        {/* Geometría de caja: [ancho, alto, profundidad] */}
-        <boxGeometry args={[3, 4.3, 0.4]} />
+      {/* 2. AJUSTA LAS DIMENSIONES AQUÍ 
+         args = [ANCHO, ALTO, GROSOR]
+         
+         - He aumentado el ancho a 3.5 y alto a 5 para que se vea más grande.
+         - He bajado el grosor a 0.2 para que se vea más elegante (menos ladrillo).
+      */}
+      <mesh ref={meshRef} castShadow receiveShadow rotation={[0, -0.3, 0]}>
+        <boxGeometry args={[3.5, 5, 0.2]} /> 
         
-        {/* Materiales para las 6 caras de la caja */}
-        {/* El orden suele ser: derecha, izquierda, arriba, abajo, FRENTE, atrás */}
-        
-        {/* Lados (páginas) - un poco más oscuros */}
+        {/* Materiales */}
         <meshStandardMaterial attach="material-0" color={"#EEECE5"} roughness={0.9} />
-        <meshStandardMaterial attach="material-1" color={"#EEECE5"} roughness={0.9} />
-        {/* Arriba/Abajo */}
+        <meshStandardMaterial attach="material-1" color={bookPaperColor} roughness={0.6} />
         <meshStandardMaterial attach="material-2" color={bookPaperColor} roughness={0.9} />
         <meshStandardMaterial attach="material-3" color={bookPaperColor} roughness={0.9} />
         
-        {/* FRENTE - Tu portada */}
+        {/* FRENTE - Tu Portada */}
         <meshStandardMaterial attach="material-4" map={coverTexture} roughness={0.4} metalness={0.1} />
         
-        {/* ATRÁS - Color sólido */}
-        <meshStandardMaterial attach="material-5" color={bookPaperColor} roughness={0.9} />
+        {/* ATRÁS */}
+        <meshStandardMaterial attach="material-5" color={bookPaperColor} roughness={0.6} />
       </mesh>
     </Float>
   );
@@ -58,20 +58,17 @@ function BookModel() {
 export default function Book3DScene() {
   return (
     <div className="h-[500px] w-full flex items-center justify-center cursor-grab active:cursor-grabbing">
-      <Canvas shadows camera={{ position: [0, 0, 8], fov: 45 }}>
-        {/* Iluminación */}
-        <ambientLight intensity={0.5} />
-        <spotLight position={[10, 10, 10]} angle={0.15} penumbra={1} intensity={1} castShadow />
+      <Canvas shadows camera={{ position: [0, 0, 9], fov: 40 }}> {/* Alejé un poco la cámara (9) y bajé el FOV para menos distorsión */}
+        <ambientLight intensity={0.6} />
+        <spotLight position={[10, 15, 10]} angle={0.3} penumbra={1} intensity={1.5} castShadow />
         <pointLight position={[-10, -10, -10]} intensity={0.5} />
         
-        {/* El Libro */}
-        <BookModel />
+        <Suspense fallback={null}>
+            <BookModel />
+            <Environment preset="city" />
+        </Suspense>
 
-        {/* Sombra de contacto en el suelo para realismo */}
-        <ContactShadows position={[0, -2.5, 0]} opacity={0.4} scale={10} blur={2.5} far={4} />
-
-        {/* Entorno para reflejos sutiles */}
-        <Environment preset="city" />
+        <ContactShadows position={[0, -2.8, 0]} opacity={0.4} scale={10} blur={2.5} far={4.5} />
       </Canvas>
     </div>
   );
