@@ -1,7 +1,7 @@
 "use client"; 
 
 import Image from "next/image";
-import { useState, Suspense } from "react";
+import { useState} from "react";
 import dynamic from "next/dynamic";
 
 const Book3DScene = dynamic(() => import("./Book3DScene"), { 

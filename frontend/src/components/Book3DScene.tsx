@@ -45,15 +45,13 @@ function BookModel() {
         <meshStandardMaterial attach="material-2" color={bookPaperColor} roughness={0.9} />
         <meshStandardMaterial attach="material-3" color={bookPaperColor} roughness={0.9} />
         
-        {/* FRENTE - Tu Portada */}
-       <meshStandardMaterial
-    attach="material-4"
-    map={coverTexture}
-    roughness={0.8}    // Más mate (menos reflejo gris)
-    metalness={0.0}    // Quitamos el efecto metálico
-    emissive={"white"} // Truco: La portada emite luz blanca
-    emissiveIntensity={0.2} // Intensidad suave para que el blanco resalte
-/>
+        <meshStandardMaterial 
+            attach="material-4" 
+            map={coverTexture} 
+            color="white" // Agrega esto por si la textura falla
+            roughness={0.4} 
+            metalness={0.1} 
+        />
         
         {/* ATRÁS */}
         <meshStandardMaterial attach="material-5" color={bookPaperColor} roughness={0.6} />
