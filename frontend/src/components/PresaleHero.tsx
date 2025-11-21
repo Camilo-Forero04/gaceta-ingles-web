@@ -2,8 +2,16 @@
 
 import Image from "next/image";
 import { useState, Suspense } from "react";
-import Book3DScene from "./Book3DScene";
+import dynamic from "next/dynamic";
 
+const Book3DScene = dynamic(() => import("./Book3DScene"), { 
+  ssr: false,
+  loading: () => (
+    <div className="flex items-center justify-center h-full">
+      <div className="animate-pulse text-gray-400 text-sm font-medium">Cargando libro...</div>
+    </div>
+  )
+});
 
 export default function PresaleHero() {
   const [isLoading, setIsLoading] = useState(false);
@@ -159,10 +167,7 @@ export default function PresaleHero() {
       {/* CAMBIO AQUÍ: De h-64 pasamos a h-[450px] para mobile */}
       <div className="lg:absolute lg:inset-y-0 lg:right-0 lg:w-1/2 bg-gray-50 flex items-center justify-center h-[450px] lg:h-full">
         
-        <Suspense fallback={<div className="text-gray-400">Cargando libro...</div>}>
-            <Book3DScene />
-        </Suspense>
-
+        <Book3DScene />
       </div>
     </div>
   );
