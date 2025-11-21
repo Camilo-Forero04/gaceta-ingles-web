@@ -1,87 +1,130 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as crypto from 'crypto';
-import { PrismaService } from '../prisma.service'; // <--- Importar
+import { PrismaService } from '../prisma.service';
+import { Resend } from 'resend'; // Importamos la librería
 
 @Injectable()
 export class PaymentService {
-  // Inyectamos PrismaService
+  private resend: Resend;
+
   constructor(
     private configService: ConfigService,
-    private prisma: PrismaService 
-  ) {}
+    private prisma: PrismaService
+  ) {
+    // Inicializamos Resend con la llave que pusiste en el .env
+    this.resend = new Resend(this.configService.get<string>('RESEND_API_KEY'));
+  }
 
-public getPresaleSignature() {
+  public getPresaleSignature() {
     // 1. Definir constantes
     const currency = 'COP';
-    const priceInCents = 2670000; // Entero directo
+    const priceInCents = 2670000; 
     
-    // 2. Referencia simple para probar (sin fechas locas para evitar desincronización)
-    // ALERTA: Cada vez que pruebes, cambia este numerito final (test-01, test-02...)
-    // Wompi no deja repetir referencias pagadas.
-    const reference = `PRUEBA-FINAL-GACETA-001`; 
+    // NOTA: Para producción, recuerda cambiar esto a algo dinámico o usar Date.now()
+    // en el Frontend también para que coincidan siempre.
+    const reference = `PRUEBA-FINAL-GACETA-${Date.now()}`; 
 
-    // 3. LLAVES DIRECTAS (Hardcoded para descartar .env)
+    // 3. LLAVES DIRECTAS (Cuando tengas las de producción, cámbialas por this.configService.get...)
     const integritySecret = "test_integrity_uUO9v08W8CbDyznZN1QqPpu2WnpoZcbM"; 
     const publicKey = "pub_test_xhmYBhoyJuKSiW2ROTm1OQLSrTAMCeBH";
 
-    // 4. Construir la cadena EXACTA
-    // Concatenamos todo como texto. 
-    // Ejemplo: "PRUEBA-FINAL-GACETA-001" + "2670000" + "COP" + "test_integrity_..."
+    // 4. Construir la cadena
     const chain = reference + priceInCents.toString() + currency + integritySecret;
 
     // 5. Generar Hash
     const signature = crypto.createHash('sha256').update(chain).digest('hex');
 
-    console.log("------------------------------------------------");
-    console.log("🕵️‍♂️ DIAGNÓSTICO DE FIRMA WOMPI");
-    console.log("1. Referencia:", reference);
-    console.log("2. Monto:", priceInCents);
-    console.log("3. Moneda:", currency);
-    console.log("4. Secreto (primeros 5):", integritySecret.substring(0, 5) + "...");
-    console.log("5. CADENA COMPLETA:", chain);
-    console.log("6. HASH GENERADO:", signature);
-    console.log("------------------------------------------------");
-
     return {
       reference: reference,
-      amountInCents: priceInCents, // Enviamos como número
+      amountInCents: priceInCents,
       currency: currency,
       signature: signature,
       publicKey: publicKey
     };
   }
 
-// ... imports ...
-
-  // 1. Agrega esta función si no la tenías, o úsala dentro de tu lógica
+  // --- MANEJO DEL WEBHOOK (Pago Real + Simulación) ---
   async handleWebhook(event: any) {
     const transaction = event?.data?.transaction;
 
-    if (!transaction) return { status: 'Ignored' };
+    if (!transaction) return { status: 'Ignored (No data)' };
 
-    // --- 🔓 BYPASS DE DESARROLLADOR (La Puerta Trasera) ---
-    // Si la referencia empieza por "TEST-DEV", aprobamos sin preguntar a Wompi
-    if (transaction.reference.startsWith("TEST-DEV")) {
-        console.log("⚠️ MODO DEV: Simulando aprobación de pago...");
+    // LÓGICA UNIFICADA:
+    // Aprobamos si Wompi dice "APPROVED" O si es tu simulación "TEST-DEV"
+    const isApproved = transaction.status === 'APPROVED' || transaction.reference.startsWith("TEST-DEV");
+
+    if (isApproved) {
+        console.log(`✅ Pago Aprobado/Simulado para: ${transaction.customer_email}`);
         
-        // Guardamos directo en Supabase
-        await this.prisma.order.create({
-            data: {
-              customerEmail: transaction.customer_email,
-              wompiReference: transaction.reference,
-              wompiTransactionId: transaction.id,
-              amount: transaction.amount_in_cents,
-              status: 'APPROVED',
-              isDelivered: false,
-            },
-        });
-        console.log("✅ [MOCK] Orden guardada en Supabase exitosamente");
-        return { success: true };
-    }
-    // -----------------------------------------------------
+        try {
+            // 1. Evitar duplicados: Revisamos si ya existe esta referencia en la DB
+            const existingOrder = await this.prisma.order.findUnique({
+                where: { wompiReference: transaction.reference }
+            });
 
-    // ... Aquí sigue tu lógica normal de validación de firma real ...
-    // ...
+            // Solo guardamos y enviamos correo si NO existe
+            if (!existingOrder) {
+                // A. Guardar en Supabase
+                await this.prisma.order.create({
+                    data: {
+                        customerEmail: transaction.customer_email,
+                        wompiReference: transaction.reference,
+                        wompiTransactionId: transaction.id,
+                        amount: transaction.amount_in_cents,
+                        status: 'APPROVED',
+                        isDelivered: false,
+                    },
+                });
+                console.log('💾 Orden guardada en Supabase');
+
+                // B. ENVIAR CORREO CON RESEND 📧
+                await this.sendWelcomeEmail(transaction.customer_email);
+            } else {
+                console.log('⚠️ La orden ya existía, saltando guardado y correo.');
+            }
+
+            return { success: true };
+
+        } catch (error) {
+            console.error('Error procesando orden:', error);
+            return { success: false, error: error.message };
+        }
+    }
+
+    return { status: 'Ignored (Not Approved)' };
+  }
+
+  // --- FUNCIÓN PRIVADA PARA DISEÑAR Y ENVIAR EL EMAIL ---
+  private async sendWelcomeEmail(email: string) {
+    try {
+        const data = await this.resend.emails.send({
+        from: 'La Gaceta del Inglés <info@gacetaingles.com>',
+        reply_to: 'info.gaceta.ingles@gmail.com', // <--- Coma importante aquí
+        to: [email],
+        subject: '🇬🇧 ¡Tu cupo está asegurado! - La Gaceta del Inglés',
+        html: `
+          <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
+            <h1 style="color: #4F46E5;">¡Bienvenido a la Preventa! 🚀</h1>
+            <p>Hola,</p>
+            <p>Confirmamos que tu pago ha sido exitoso. Ya tienes asegurada tu copia de <strong>"Desbloquea tu Fluidez"</strong>.</p>
+            
+            <div style="background-color: #F3F4F6; padding: 20px; border-radius: 8px; margin: 20px 0;">
+              <p style="margin: 0 0 10px 0;"><strong>📅 Fecha de Entrega:</strong> 15 de Diciembre, 2025</p>
+              <p style="margin: 0;"><strong>📧 Medio de entrega:</strong> Te llegará un enlace de descarga directo a este correo.</p>
+            </div>
+
+            <p>Mientras tanto, gracias por confiar en este proyecto.</p>
+            <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;">
+            <p style="font-size: 12px; color: #888;"><em>Atentamente,<br>El equipo de La Gaceta del Inglés</em></p>
+          </div>
+        `,
+    }as any);
+        console.log('📧 Correo enviado exitosamente ID:', data.data?.id); 
+    } catch (error) {
+        console.error('❌ Error enviando correo:', error);
+        // No lanzamos error aquí para no romper el flujo si el correo falla,
+        // ya que lo importante es que la orden quedó guardada en la DB.
+    }
   }
 }

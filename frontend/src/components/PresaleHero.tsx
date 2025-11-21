@@ -35,7 +35,7 @@ export default function PresaleHero() {
                     reference: "TEST-DEV-" + Date.now(), // <--- La clave mágica para tu backend
                     amount_in_cents: 2670000,
                     status: "APPROVED",
-                    customer_email: "micorreo@prueba.com" // <--- Puedes cambiarlo para probar
+                    customer_email: "camiloforero401@gmail.com" // <--- Puedes cambiarlo para probar
                 }
             }
         };
