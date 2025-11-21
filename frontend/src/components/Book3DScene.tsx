@@ -8,7 +8,7 @@ import * as THREE from "three";
 
 function BookModel() {
   const meshRef = useRef<THREE.Mesh>(null);
-  const coverTexture = useTexture("/book_cover_texture.jpg");
+  const coverTexture = useTexture("/book_cover_texture.jpg?v=2");
   
   // Configuración para que la textura se estire bien si es necesario
   coverTexture.center.set(0.5, 0.5); 
