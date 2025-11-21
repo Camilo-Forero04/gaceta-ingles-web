@@ -38,10 +38,8 @@ function BookModel() {
         <meshStandardMaterial 
             attach="material-4" 
             map={coverTexture} 
-            roughness={0.8} 
-            metalness={0.0} 
-            emissive={"white"} 
-            emissiveIntensity={0.1} 
+            roughness={0.8} // Mantenemos que sea mate (papel)
+            metalness={0.0} // Sin brillo metálico
         />
         
         {/* ATRÁS */}
