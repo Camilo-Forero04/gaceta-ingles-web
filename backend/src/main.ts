@@ -6,7 +6,7 @@ async function bootstrap() {
   
   // 👇 AQUÍ ESTÁ EL CÓDIGO FINAL DE CORS
   app.enableCors({
-    origin: 'https://gacetaingles.com', // <--- DEBE SER HTTPS Y TU DOMINIO REAL
+    origin: ['https://gacetaingles.com', 'https://www.gacetaingles.com'], // <--- DEBE SER HTTPS Y TU DOMINIO REAL
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     credentials: true,
   });
