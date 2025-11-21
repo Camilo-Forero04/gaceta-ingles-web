@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useRef, Suspense } from "react";
+import React, { useRef } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
 import { useTexture, Environment, Float, ContactShadows } from "@react-three/drei";
 import * as THREE from "three";
@@ -8,7 +8,7 @@ import * as THREE from "three";
 function BookModel() {
   const meshRef = useRef<THREE.Mesh>(null);
   
-  // Asegúrate de que este nombre coincida con tu archivo en public
+  // Cargamos la textura (mantenemos el v=2 por seguridad de caché)
   const coverTexture = useTexture("/book_cover_texture.jpg?v=2"); 
   coverTexture.center.set(0.5, 0.5); 
   
@@ -17,6 +17,7 @@ function BookModel() {
   useFrame((state) => {
     const t = state.clock.getElapsedTime();
     if (meshRef.current) {
+        // Rotación suave y elegante
         meshRef.current.rotation.y = Math.sin(t / 4) * 0.3;
         meshRef.current.rotation.x = Math.cos(t / 3) * 0.05;
     }
@@ -33,7 +34,7 @@ function BookModel() {
         <meshStandardMaterial attach="material-2" color={bookPaperColor} roughness={0.9} />
         <meshStandardMaterial attach="material-3" color={bookPaperColor} roughness={0.9} />
         
-        {/* FRENTE - Tu Portada con luz propia para que no se vea oscura */}
+        {/* FRENTE: Mantenemos la luz propia (emissive) para que resalte */}
         <meshStandardMaterial 
             attach="material-4" 
             map={coverTexture} 
@@ -52,19 +53,18 @@ function BookModel() {
 
 export default function Book3DScene() {
   return (
-    // 👇 BORDE ROJO TEMPORAL PARA DIAGNÓSTICO
-    <div className="h-full w-full flex items-center justify-center cursor-grab active:cursor-grabbing touch-none border-4 border-red-500 z-50">
+    // ✨ LIMPIEZA: Quitamos el borde rojo y el z-50
+    <div className="h-full w-full flex items-center justify-center cursor-grab active:cursor-grabbing touch-none">
       <Canvas shadows camera={{ position: [0, 0, 9], fov: 40 }}>
         
-        {/* ILUMINACIÓN "A PRUEBA DE FALLOS" */}
-        <ambientLight intensity={2.0} /> {/* Luz ambiental muy fuerte */}
+        {/* 💡 ILUMINACIÓN CINEMÁTICA: Bajamos la luz ambiente para recuperar sombras */}
+        <ambientLight intensity={0.6} /> 
         <spotLight position={[10, 15, 10]} angle={0.3} penumbra={1} intensity={1.5} castShadow />
-        <pointLight position={[-10, -10, -10]} intensity={1.0} />
+        <pointLight position={[-10, -10, -10]} intensity={0.5} />
         
-        <Suspense fallback={null}>
-            <BookModel />
-            <Environment preset="city" />
-        </Suspense>
+        {/* Ya no necesitamos Suspense aquí porque lo maneja el dynamic import del padre */}
+        <BookModel />
+        <Environment preset="city" />
 
         <ContactShadows position={[0, -2.8, 0]} opacity={0.4} scale={10} blur={2.5} far={4.5} />
       </Canvas>
