@@ -1,7 +1,7 @@
 "use client"; 
 
 import Image from "next/image";
-import { useState } from "react";
+mport { useState, Suspense } from "react";
 import Book3DScene from "./Book3DScene";
 
 
@@ -155,9 +155,14 @@ export default function PresaleHero() {
         </div>
       </div>
       
-      {/* Zona de Imagen */}
-      <div className="lg:absolute lg:inset-y-0 lg:right-0 lg:w-1/2 bg-gray-100 flex items-center justify-center h-64 lg:h-full border-l border-gray-200">
-        <Book3DScene />
+      {/* Zona de Imagen 3D */}
+      {/* CAMBIO AQUÍ: De h-64 pasamos a h-[450px] para mobile */}
+      <div className="lg:absolute lg:inset-y-0 lg:right-0 lg:w-1/2 bg-gray-50 flex items-center justify-center h-[450px] lg:h-full">
+        
+        <Suspense fallback={<div className="text-gray-400">Cargando libro...</div>}>
+            <Book3DScene />
+        </Suspense>
+
       </div>
     </div>
   );

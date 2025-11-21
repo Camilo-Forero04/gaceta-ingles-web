@@ -46,7 +46,14 @@ function BookModel() {
         <meshStandardMaterial attach="material-3" color={bookPaperColor} roughness={0.9} />
         
         {/* FRENTE - Tu Portada */}
-        <meshStandardMaterial attach="material-4" map={coverTexture} roughness={0.4} metalness={0.1} />
+       <meshStandardMaterial
+    attach="material-4"
+    map={coverTexture}
+    roughness={0.8}    // Más mate (menos reflejo gris)
+    metalness={0.0}    // Quitamos el efecto metálico
+    emissive={"white"} // Truco: La portada emite luz blanca
+    emissiveIntensity={0.2} // Intensidad suave para que el blanco resalte
+/>
         
         {/* ATRÁS */}
         <meshStandardMaterial attach="material-5" color={bookPaperColor} roughness={0.6} />
@@ -57,18 +64,10 @@ function BookModel() {
 
 export default function Book3DScene() {
   return (
-    <div className="h-[500px] w-full flex items-center justify-center cursor-grab active:cursor-grabbing">
-      <Canvas shadows camera={{ position: [0, 0, 9], fov: 40 }}> {/* Alejé un poco la cámara (9) y bajé el FOV para menos distorsión */}
-        <ambientLight intensity={0.6} />
-        <spotLight position={[10, 15, 10]} angle={0.3} penumbra={1} intensity={1.5} castShadow />
-        <pointLight position={[-10, -10, -10]} intensity={0.5} />
-        
-        <Suspense fallback={null}>
-            <BookModel />
-            <Environment preset="city" />
-        </Suspense>
-
-        <ContactShadows position={[0, -2.8, 0]} opacity={0.4} scale={10} blur={2.5} far={4.5} />
+    // CAMBIO AQUÍ: Quitamos h-[500px] y ponemos h-full
+    <div className="h-full w-full flex items-center justify-center cursor-grab active:cursor-grabbing touch-none">
+      <Canvas shadows camera={{ position: [0, 0, 9], fov: 40 }}>
+         {/* ... resto del código igual ... */}
       </Canvas>
     </div>
   );
