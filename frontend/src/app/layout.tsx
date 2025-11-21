@@ -4,6 +4,7 @@ import Script from "next/script";
 import "./globals.css";
 // IMPORTAMOS EL WRAPPER, NO EL PIXEL DIRECTO NI EL DYNAMIC AQUÍ
 import PixelWrapper from "../components/PixelWrapper"; 
+import Navbar from "../components/Navbar";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -22,6 +23,7 @@ export default function RootLayout({
       <body className={inter.className}>
         {/* Usamos el componente intermediario seguro */}
         <PixelWrapper />
+        <Navbar />
         
         {children}
         
