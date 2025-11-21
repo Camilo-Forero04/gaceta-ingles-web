@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { useState } from "react";
+import Book3DScene from "./Book3DScene";
 
 
 export default function PresaleHero() {
@@ -156,13 +157,7 @@ export default function PresaleHero() {
       
       {/* Zona de Imagen */}
       <div className="lg:absolute lg:inset-y-0 lg:right-0 lg:w-1/2 bg-gray-100 flex items-center justify-center h-64 lg:h-full border-l border-gray-200">
-        <div className="text-center p-10">
-            <div className="inline-block p-4 rounded-lg bg-white shadow-lg mb-4">
-                 <span className="text-6xl">📚</span>
-            </div>
-            <p className="text-gray-400 font-medium">Aquí irá tu Mockup 3D</p>
-            <p className="text-xs text-gray-300 mt-2">image_mockup.png</p>
-        </div>
+        <Book3DScene />
       </div>
     </div>
   );
