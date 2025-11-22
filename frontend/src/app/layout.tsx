@@ -6,6 +6,7 @@ import "./globals.css";
 import PixelWrapper from "../components/PixelWrapper"; 
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
+import WhatsAppButton from "../components/WhatsAppButton";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -29,6 +30,7 @@ export default function RootLayout({
         {children}
 
         <Footer />
+        <WhatsAppButton />
         
         <Script 
           src="https://checkout.wompi.co/widget.js" 

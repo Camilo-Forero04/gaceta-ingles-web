@@ -34,12 +34,20 @@ function BookModel() {
         <meshStandardMaterial attach="material-2" color={bookPaperColor} roughness={0.9} />
         <meshStandardMaterial attach="material-3" color={bookPaperColor} roughness={0.9} />
         
-        {/* FRENTE: Mantenemos la luz propia (emissive) para que resalte */}
         <meshStandardMaterial 
             attach="material-4" 
-            map={coverTexture} 
-            roughness={0.8} // Mantenemos que sea mate (papel)
-            metalness={0.0} // Sin brillo metálico
+            map={coverTexture}
+            // 1. Color base BLANCO PURO para que la imagen no se oscurezca
+            color="#ffffff" 
+            
+            // 2. Roughness BAJO (0.2 - 0.3) = Superficie muy pulida y brillante (como mármol)
+            roughness={0.25} 
+
+            // Metalness en 0 porque no es metal
+            metalness={0.0} 
+            
+            // 3. Hacemos que los reflejos del entorno sean más fuertes
+            envMapIntensity={1.5}
         />
         
         {/* ATRÁS */}

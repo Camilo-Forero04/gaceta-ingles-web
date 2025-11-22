@@ -1,6 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
-import { FaFacebookF, FaInstagram, FaTiktok, FaTwitter } from "react-icons/fa";
+import { FaFacebookF, FaInstagram, FaTiktok, FaTwitter, FaWhatsapp } from "react-icons/fa";
 
 export default function Footer() {
   return (
@@ -38,6 +38,13 @@ export default function Footer() {
 
         {/* 3. REDES SOCIALES */}
         <div className="flex gap-6 mb-12">
+            <a 
+            href="https://wa.me/573001234567?text=Hola..."
+            target="_blank"
+            className="text-gray-400 hover:text-[#25D366] hover:scale-110 transition-all"
+          >
+            <FaWhatsapp size={22} />
+          </a>
           <a href="https://www.facebook.com/profile.php?id=61582472553487" className="text-gray-400 hover:text-white hover:scale-110 transition-all">
             <FaFacebookF size={20} />
           </a>
