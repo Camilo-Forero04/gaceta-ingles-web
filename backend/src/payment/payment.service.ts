@@ -41,6 +41,9 @@ export class PaymentService {
     // Encriptar
     const signature = crypto.createHash('sha256').update(chain).digest('hex');
 
+    console.log("🖊️ FIRMA RESULTANTE:", signature);
+    console.log("------------------------------------------------");
+
     console.log("🔐 FIRMANDO CON:", cleanSecret.substring(0, 10) + "..."); // Para ver en logs
 
     return {
