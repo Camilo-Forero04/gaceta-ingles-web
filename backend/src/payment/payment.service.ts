@@ -15,14 +15,14 @@ export class PaymentService {
     this.resend = new Resend(this.configService.get<string>('RESEND_API_KEY'));
   }
 
-public getPresaleSignature() {
+  public getPresaleSignature() {
     const currency = 'COP';
     const priceInCents = 2670000; 
     
-    // Referencia dinámica
+    // 1. REFERENCIA DINÁMICA (Obligatorio para producción)
     const reference = `GACETA-${Date.now()}`; 
 
-    // 1. LEER LLAVES DE RAILWAY
+    // 2. LEER LLAVES DE RAILWAY (Producción)
     const integritySecret = this.configService.get<string>('WOMPI_INTEGRITY_SECRET');
     const publicKey = this.configService.get<string>('WOMPI_PUB_KEY');
 
@@ -30,15 +30,8 @@ public getPresaleSignature() {
       throw new Error('Faltan las llaves de Wompi en las Variables de Entorno');
     }
 
-    // 👇 DIAGNÓSTICO: Esto imprimirá en los logs de Railway qué llave está usando
-    console.log("🔍 DIAGNÓSTICO DE LLAVE:");
-    console.log("El secreto que estoy usando empieza por:", integritySecret.substring(0, 15) + "...");
-    // 👆
-
-    // 2. CREAR CADENA (Solo una vez)
+    // 3. FIRMAR
     const chain = `${reference}${priceInCents}${currency}${integritySecret}`;
-    
-    // 3. ENCRIPTAR
     const signature = crypto.createHash('sha256').update(chain).digest('hex');
 
     return {
@@ -55,18 +48,16 @@ public getPresaleSignature() {
 
     if (!transaction) return { status: 'Ignored (No data)' };
 
-    // 4. VALIDACIÓN REAL: Solo aceptamos si Wompi dice APPROVED
+    // 4. VALIDACIÓN REAL
     if (transaction.status === 'APPROVED') {
         console.log(`💰 VENTA REAL Aprobada: ${transaction.customer_email}`);
         
         try {
-            // Evitar duplicados
             const existingOrder = await this.prisma.order.findUnique({
                 where: { wompiReference: transaction.reference }
             });
 
             if (!existingOrder) {
-                // A. Guardar en Base de Datos
                 await this.prisma.order.create({
                     data: {
                         customerEmail: transaction.customer_email,
@@ -77,12 +68,10 @@ public getPresaleSignature() {
                         isDelivered: false,
                     },
                 });
-                console.log('💾 Orden guardada en Supabase');
-
-                // B. Enviar Correo
+                
+                // Enviar Correo
                 await this.sendWelcomeEmail(transaction.customer_email);
             }
-
             return { success: true };
 
         } catch (error) {
@@ -90,7 +79,6 @@ public getPresaleSignature() {
             return { success: false, error: error.message };
         }
     }
-
     return { status: 'Ignored (Not Approved)' };
   }
 
@@ -110,11 +98,9 @@ public getPresaleSignature() {
                   <p style="margin: 0 0 10px 0;"><strong>📅 Entrega del eBook:</strong> 15 de Diciembre, 2025</p>
                   <p style="margin: 0;">Te enviaremos el enlace de descarga aquí mismo.</p>
                 </div>
-                <p><em>Atentamente,<br>El equipo de La Gaceta</em></p>
               </div>
             `,
         } as any);
-        console.log('📧 Correo enviado a:', email);
     } catch (error) {
         console.error('❌ Error enviando correo:', error);
     }
