@@ -52,7 +52,7 @@ function BookModel() {
 export default function Book3DScene() {
   return (
     // ✨ LIMPIEZA: Quitamos el borde rojo y el z-50
-    <div className="h-full w-full flex items-center justify-center cursor-grab active:cursor-grabbing touch-none">
+    <div className="h-full w-full flex items-center justify-center pointer-events-none">
       <Canvas shadows camera={{ position: [0, 0, 9], fov: 40 }}>
         
         {/* 💡 ILUMINACIÓN CINEMÁTICA: Bajamos la luz ambiente para recuperar sombras */}

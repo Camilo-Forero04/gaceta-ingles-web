@@ -10,10 +10,13 @@ export default function Footer() {
         {/* 1. LOGO (Blanco o Invertido para fondo oscuro) */}
         <div className="mb-8">
           <Link href="/" className="flex items-center gap-2 group">
-            {/* Si tienes un logo blanco úsalo, si no, este texto se ve bien */}
-            <span className="text-2xl font-bold tracking-tight text-white">
-              La Gaceta<span className="text-indigo-500">.</span>
-            </span>
+            <Image 
+              src="/logo-gaceta-blanco.png" 
+              alt="Logo La Gaceta del Inglés" 
+              width={160}  // Ajusta este ancho si es necesario
+              height={45}  // Ajusta este alto si es necesario
+              className="h-auto w-auto" // Mantiene la proporción
+            />
           </Link>
         </div>
 
@@ -35,7 +38,7 @@ export default function Footer() {
 
         {/* 3. REDES SOCIALES */}
         <div className="flex gap-6 mb-12">
-          <a href="/https://www.facebook.com/profile.php?id=61582472553487&sk=directory_basic_info" className="text-gray-400 hover:text-white hover:scale-110 transition-all">
+          <a href="https://www.facebook.com/profile.php?id=61582472553487" className="text-gray-400 hover:text-white hover:scale-110 transition-all">
             <FaFacebookF size={20} />
           </a>
           <a href="https://www.instagram.com/gacetaingles" className="text-gray-400 hover:text-white hover:scale-110 transition-all">
