@@ -14,26 +14,27 @@ export class PaymentService {
   ) {
     this.resend = new Resend(this.configService.get<string>('RESEND_API_KEY'));
   }
-
 public getPresaleSignature() {
     const currency = 'COP';
     const priceInCents = 2670000; 
+    // Referencia única cada vez
     const reference = `GACETA-${Date.now()}`; 
 
-    // ⚠️ PEGA TUS LLAVES REALES AQUÍ (Dentro de las comillas)
-    // Copialas con mucho cuidado de tu foto o dashboard
-    
-    const integritySecret = "prod_integrity_cqVlvM0EZ6PvlxXT15twJDlany5NOgAB"; 
-    const publicKey = "pub_prod_Wcu7XrFi4wzelvB4V7cLKhMW63dNyj0K";
+    // ✅ VOLVEMOS A LA FORMA SEGURA (Leyendo de Railway)
+    const integritySecret = this.configService.get<string>('WOMPI_INTEGRITY_SECRET');
+    const publicKey = this.configService.get<string>('WOMPI_PUB_KEY');
 
-    // -------------------------------------------------------
+    // Validación para que el servidor avise si faltan las variables
+    if (!integritySecret || !publicKey) {
+      console.error("❌ ERROR: No se encontraron las llaves de Wompi en las variables de entorno.");
+      throw new Error('Faltan las llaves de Wompi en el .env');
+    }
 
-    // Log para asegurar que estamos usando las fijas
-    console.log("🔒 MODO HARDCODE ACTIVO");
-    console.log("Usando Public Key:", publicKey);
-    console.log("Usando Secreto:", integritySecret);
+    // Limpieza de seguridad (por si Railway tiene espacios)
+    const cleanSecret = integritySecret.trim();
+    const cleanPublic = publicKey.trim();
 
-    const chain = `${reference}${priceInCents}${currency}${integritySecret}`;
+    const chain = `${reference}${priceInCents}${currency}${cleanSecret}`;
     const signature = crypto.createHash('sha256').update(chain).digest('hex');
 
     return {
@@ -41,7 +42,7 @@ public getPresaleSignature() {
       amountInCents: priceInCents,
       currency,
       signature,
-      publicKey
+      publicKey: cleanPublic
     };
   }
 
