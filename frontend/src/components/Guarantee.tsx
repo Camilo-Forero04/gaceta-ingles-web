@@ -37,7 +37,7 @@ export default function Guarantee() {
             <div className="h-12 w-12 bg-green-100 text-green-600 rounded-full flex items-center justify-center mb-4">
               <FaShieldAlt size={24} />
             </div>
-            <h3 className="text-xl font-bold text-gray-900 mb-2">Garantía de 7 Días</h3>
+            <h3 className="text-xl font-bold text-gray-900 mb-2">Garantía de 7 Días post-lanzamiento</h3>
             <p className="text-gray-500 text-sm">
               Si el contenido del libro no cumple tus expectativas, te devolvemos el 100% de tu dinero sin preguntas.
             </p>
