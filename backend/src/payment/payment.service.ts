@@ -34,7 +34,10 @@ export class PaymentService {
 
     // Crear cadena
     const chain = `${reference}${priceInCents}${currency}${cleanSecret}`;
-    
+
+    console.log("------------------------------------------------");
+    console.log("🔎 CADENA QUE ESTOY FIRMANDO:", chain);
+  
     // Encriptar
     const signature = crypto.createHash('sha256').update(chain).digest('hex');
 
