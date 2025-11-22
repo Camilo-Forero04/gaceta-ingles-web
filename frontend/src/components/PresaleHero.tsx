@@ -7,8 +7,8 @@ import dynamic from "next/dynamic";
 const Book3DScene = dynamic(() => import("./Book3DScene"), { 
   ssr: false,
   loading: () => (
-    <div className="flex items-center justify-center h-full bg-gray-50">
-      <div className="animate-pulse text-gray-400 text-sm font-medium">Cargando experiencia 3D...</div>
+    <div className="flex items-center justify-center h-full">
+      <div className="animate-pulse text-gray-400 text-sm font-medium">Cargando libro...</div>
     </div>
   )
 });
@@ -47,45 +47,65 @@ export default function PresaleHero() {
 
     return () => clearInterval(interval);
   }, []);
-  // ---------------------------
 
+  // --- LÓGICA DE PAGO REAL (Restaurada) ---
   const handlePurchase = async () => {
-    // (Tu lógica de compra sigue igual...)
-    alert("Lógica de compra (simplificada para el ejemplo de diseño)");
+    // 1. Pixel de Meta
+    const ReactPixel = (await import("react-facebook-pixel")).default;
+    ReactPixel.track("InitiateCheckout", {
+        currency: "COP",
+        value: 26700,
+        content_name: "La Gaceta del Inglés (Preventa)"
+    });
+
+    setIsLoading(true);
+
+    try {
+       // 2. Pedir firma al Backend (Producción)
+       const response = await fetch('https://gaceta-ingles-web-production.up.railway.app/payment/presale-info');
+       
+       if (!response.ok) throw new Error("Error conectando con el servidor de pagos");
+       
+       const data = await response.json();
+
+       // 3. Abrir Widget de Wompi REAL
+       if (typeof (window as any).WidgetCheckout !== 'undefined') {
+          const checkout = new (window as any).WidgetCheckout({
+            currency: 'COP',
+            amountInCents: Number(data.amountInCents),
+            reference: data.reference,
+            publicKey: data.publicKey,
+            signature: { integrity: data.signature }, 
+            redirectUrl: 'https://www.gacetaingles.com/gracias',
+            taxInCents: { vat: 0, consumption: 0 }
+          });
+          
+          checkout.open((result: any) => {
+            const transaction = result.transaction;
+            if (transaction.status === 'APPROVED') {
+                window.location.href = `/gracias?id=${transaction.id}`;
+            }
+          });
+       } else {
+           alert("El sistema de pagos está cargando. Intenta de nuevo en 2 segundos.");
+       }
+
+    } catch (e) {
+        console.error(e);
+        alert("Hubo un error al iniciar el pago.");
+    } finally {
+        setIsLoading(false);
+    }
   };
 
   return (
-    // 1. CONTENEDOR PRINCIPAL FLEX:
-    // - 'flex flex-col': En móvil, los elementos se apilan verticalmente.
-    // - 'lg:flex-row': En escritorio, se ponen uno al lado del otro.
-    // - 'min-h-[90vh]': Asegura que la sección tenga buena altura en escritorio.
-    <section className="relative bg-white overflow-hidden flex flex-col lg:flex-row max-w-7xl mx-auto min-h-[auto] lg:min-h-[90vh]" id="#metodo">
+    <section className="relative bg-white overflow-hidden flex flex-col lg:flex-row max-w-7xl mx-auto min-h-[auto] lg:min-h-[90vh]">
       
-      {/* 2. ZONA DEL LIBRO 3D (SECCIÓN DERECHA/SUPERIOR):
-        - 'w-full lg:w-1/2': Ocupa todo el ancho en móvil, la mitad en escritorio.
-        - 'h-[50vh] min-h-[400px]': En móvil, le damos una altura considerable para que el libro luzca.
-        - 'lg:h-auto': En escritorio, la altura se adapta al contenedor padre.
-        - 'lg:order-2': En escritorio, va a la derecha (segundo lugar).
-        - 'bg-gray-50': Un fondo gris sutil para diferenciar el área 3D.
-      */}
-      <div className="lg:absolute lg:inset-y-0 lg:right-0 lg:w-1/2 bg-gray-50 flex items-center justify-center h-[320px] lg:h-full">
-        <Book3DScene />
-        {/* Decoración sutil de fondo opcional */}
-        <div className="absolute inset-0 bg-gradient-to-t from-white via-transparent to-transparent opacity-40 lg:hidden pointer-events-none"></div>
-      </div>
-
-      {/* 3. ZONA DE TEXTO (SECCIÓN IZQUIERDA/INFERIOR):
-        - 'w-full lg:w-1/2': Ancho completo móvil, mitad escritorio.
-        - 'flex items-center': Centra el contenido verticalmente en escritorio.
-        - 'p-6 sm:p-12 lg:p-16': Buen espaciado interno para que el texto respire.
-        - 'lg:order-1': En escritorio, va a la izquierda (primer lugar).
-        - 'z-10 bg-white': Asegura que el texto esté sobre cualquier elemento y tenga fondo blanco.
-      */}
-{/* 3. ZONA DE TEXTO (Ajustada para subir el botón) */}
+      {/* 1. ZONA DE TEXTO */}
       <div className="w-full lg:w-1/2 flex items-center z-10 bg-white p-6 sm:px-12 py-6 lg:p-10 lg:order-1">
         <div className="w-full max-w-xl mx-auto lg:mx-0">
             
-            {/* Etiqueta - Reducido margen inferior (mb-4) */}
+            {/* Etiqueta */}
             <div className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-indigo-100 text-indigo-800 mb-4">
               <span className="flex h-2 w-2 relative mr-2">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
@@ -94,42 +114,30 @@ export default function PresaleHero() {
               Fase de Preventa Activa
             </div>
 
-            {/* Título - Reducido margen inferior (mb-4) */}
+            {/* Título */}
             <h1 className="text-4xl tracking-tight font-extrabold text-gray-900 sm:text-5xl md:text-6xl mb-4 leading-tight">
               Desbloquea tu fluidez con <span className="text-indigo-600 block lg:inline">el Método IA SPOKEN</span>
             </h1>
             
-            {/* Subtítulo - Reducido margen inferior (mb-6) */}
+            {/* Subtítulo */}
             <p className="mt-2 text-base text-gray-500 sm:text-lg md:text-xl mb-6 leading-relaxed">
               Las academias te enseñan a memorizar. La IA te enseña a hablar. Únete a la revolución y ahorra un <strong>{AHORRO}%</strong> antes del lanzamiento oficial.
             </p>
 
-            {/* Contador - Reducido margen inferior (mb-6) */}
+            {/* Contador */}
             {isMounted && (
               <div className="flex flex-wrap gap-3 mb-6">
-                <div className="flex flex-col items-center bg-gray-50 border border-gray-200 p-2 rounded-lg min-w-[65px]">
-                  <span className="text-xl font-bold text-indigo-600">{timeLeft.days}</span>
-                  <span className="text-[10px] text-gray-500 uppercase">Días</span>
-                </div>
-                <div className="flex flex-col items-center bg-gray-50 border border-gray-200 p-2 rounded-lg min-w-[65px]">
-                  <span className="text-xl font-bold text-indigo-600">{timeLeft.hours}</span>
-                  <span className="text-[10px] text-gray-500 uppercase">Horas</span>
-                </div>
-                <div className="flex flex-col items-center bg-gray-50 border border-gray-200 p-2 rounded-lg min-w-[65px]">
-                  <span className="text-xl font-bold text-indigo-600">{timeLeft.minutes}</span>
-                  <span className="text-[10px] text-gray-500 uppercase">Min</span>
-                </div>
-                <div className="flex flex-col items-center bg-gray-50 border border-gray-200 p-2 rounded-lg min-w-[65px]">
-                  <span className="text-xl font-bold text-indigo-600">{timeLeft.seconds}</span>
-                  <span className="text-[10px] text-gray-500 uppercase">Seg</span>
-                </div>
+                <CounterBox value={timeLeft.days} label="Días" />
+                <CounterBox value={timeLeft.hours} label="Horas" />
+                <CounterBox value={timeLeft.minutes} label="Min" />
+                <CounterBox value={timeLeft.seconds} label="Seg" />
                 <div className="flex items-center text-xs text-red-600 font-medium animate-pulse ml-1 bg-red-50 px-2 py-1 rounded-full">
                   ⚠️ ¡La oferta termina pronto!
                 </div>
               </div>
             )}
 
-            {/* Precios - Reducido margen inferior (mb-6) */}
+            {/* Precios */}
             <div className="flex items-center gap-4 mb-6">
               <div className="flex items-baseline gap-1">
                   <span className="text-4xl sm:text-5xl font-extrabold text-gray-900">
@@ -157,16 +165,23 @@ export default function PresaleHero() {
             </div>
         </div>
       </div>
+
+      {/* 2. ZONA DEL LIBRO 3D */}
+      <div className="w-full h-[350px] lg:w-1/2 lg:h-auto bg-gray-50 relative z-0 flex items-center justify-center lg:order-2">
+        <Book3DScene />
+        <div className="absolute inset-0 bg-gradient-to-b from-white via-transparent to-gray-50 lg:hidden pointer-events-none"></div>
+      </div>
+
     </section>
   );
 }
 
-// Pequeño componente auxiliar para las cajitas del contador (para limpiar el código principal)
+// Componente auxiliar para el contador
 function CounterBox({ value, label }: { value: number, label: string }) {
   return (
-    <div className="flex flex-col items-center bg-white border-2 border-gray-100 p-3 rounded-xl min-w-[65px] shadow-sm">
-      <span className="text-2xl font-extrabold text-indigo-600 leading-none">{value}</span>
-      <span className="text-[10px] font-bold text-gray-400 uppercase mt-1">{label}</span>
+    <div className="flex flex-col items-center bg-white border-2 border-gray-100 p-2 rounded-lg min-w-[60px] shadow-sm">
+      <span className="text-xl font-extrabold text-indigo-600 leading-none">{value}</span>
+      <span className="text-[9px] font-bold text-gray-400 uppercase mt-1">{label}</span>
     </div>
   );
 }
