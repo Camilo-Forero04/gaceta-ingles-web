@@ -15,44 +15,26 @@ export class PaymentService {
     this.resend = new Resend(this.configService.get<string>('RESEND_API_KEY'));
   }
 
-  public getPresaleSignature() {
+public getPresaleSignature() {
     const currency = 'COP';
     const priceInCents = 2670000; 
     const reference = `GACETA-${Date.now()}`; 
 
-    // ☢️ ZONA NUCLEAR: Pegamos las llaves reales aquí directo
-    // (Asegúrate de que queden dentro de las comillas)
+    // ✅ VOLVEMOS A LA FORMA SEGURA:
+    const integritySecret = this.configService.get<string>('WOMPI_INTEGRITY_SECRET');
+    const publicKey = this.configService.get<string>('WOMPI_PUB_KEY');
+
+    if (!integritySecret || !publicKey) {
+      throw new Error('Faltan llaves');
+    }
     
-    const integritySecret = "prod_integrity_cqVlvM0EZ6PvlxXT15twJDlany5NOgAB"; 
-    const publicKey = "pub_prod_Wcu7XrFi4wzelvB4V7cLKhMW63dNyj0K";
+    // (Puedes dejar el console.log de diagnóstico si quieres, no hace daño)
+    console.log("🔐 Usando llave que empieza por:", integritySecret?.substring(0,10));
 
-    // ---------------------------------------------------------
-
-    // Limpieza paranoica (por si pegaste espacios sin querer)
-    const cleanSecret = integritySecret.trim();
-    const cleanPublic = publicKey.trim();
-
-    // Crear cadena
-    const chain = `${reference}${priceInCents}${currency}${cleanSecret}`;
-
-    console.log("------------------------------------------------");
-    console.log("🔎 CADENA QUE ESTOY FIRMANDO:", chain);
-  
-    // Encriptar
+    const chain = `${reference}${priceInCents}${currency}${integritySecret}`;
     const signature = crypto.createHash('sha256').update(chain).digest('hex');
 
-    console.log("🖊️ FIRMA RESULTANTE:", signature);
-    console.log("------------------------------------------------");
-
-    console.log("🔐 FIRMANDO CON:", cleanSecret.substring(0, 10) + "..."); // Para ver en logs
-
-    return {
-      reference,
-      amountInCents: priceInCents,
-      currency,
-      signature,
-      publicKey: cleanPublic
-    };
+    return { reference, amountInCents: priceInCents, currency, signature, publicKey };
   }
 
   async handleWebhook(event: any) {
