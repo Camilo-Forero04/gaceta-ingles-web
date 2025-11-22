@@ -5,6 +5,7 @@ import "./globals.css";
 // IMPORTAMOS EL WRAPPER, NO EL PIXEL DIRECTO NI EL DYNAMIC AQUÍ
 import PixelWrapper from "../components/PixelWrapper"; 
 import Navbar from "../components/Navbar";
+import Footer from "../components/Footer";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -26,6 +27,8 @@ export default function RootLayout({
         <Navbar />
         
         {children}
+
+        <Footer />
         
         <Script 
           src="https://checkout.wompi.co/widget.js" 
