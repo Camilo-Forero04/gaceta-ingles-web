@@ -17,7 +17,7 @@ export default function WhatsAppButton() {
       aria-label="Contactar por WhatsApp"
     >
       {/* Efecto de onda (ping) para llamar la atención */}
-      <span className="absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75 animate-ping group-hover:hidden"></span>
+      <span className="absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75 group-hover:hidden"></span>
       
       <FaWhatsapp size={32} className="relative" />
     </a>

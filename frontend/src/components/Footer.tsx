@@ -13,8 +13,8 @@ export default function Footer() {
             <Image 
               src="/logo-gaceta-blanco.png" 
               alt="Logo La Gaceta del Inglés" 
-              width={100}  // Ajusta este ancho si es necesario
-              height={25}  // Ajusta este alto si es necesario
+              width={50}  // Ajusta este ancho si es necesario
+              height={22}  // Ajusta este alto si es necesario
               className="h-auto w-auto" // Mantiene la proporción
             />
           </Link>
