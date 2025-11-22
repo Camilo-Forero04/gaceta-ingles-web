@@ -41,6 +41,12 @@ export default function PresaleHero() {
        
        const data = await response.json();
 
+       console.log("🕵️‍♂️ DATOS QUE ENVIAMOS A WOMPI:");
+       console.log("Llave Pública:", data.publicKey);
+       console.log("Referencia:", data.reference);
+       console.log("Monto:", data.amountInCents);
+       console.log("Firma:", data.signature);
+
        // 3. Abrir Widget de Wompi
        if (typeof (window as any).WidgetCheckout !== 'undefined') {
           const checkout = new (window as any).WidgetCheckout({
