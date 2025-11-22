@@ -2,7 +2,7 @@ import { FaShieldAlt, FaLock, FaCloudDownloadAlt } from "react-icons/fa";
 
 export default function Guarantee() {
   return (
-    <section className="bg-gray-50 py-16 border-t border-gray-200" id="#garantia">
+    <section className="bg-gray-50 py-16 border-t border-gray-200" id="garantia">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Título de la Sección */}
