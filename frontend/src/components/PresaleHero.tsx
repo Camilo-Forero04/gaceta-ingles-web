@@ -3,11 +3,11 @@
 import { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 
-// Import dinámico del libro
+// Import dinámico del libro para evitar errores de SSR
 const Book3DScene = dynamic(() => import("./Book3DScene"), { 
   ssr: false,
   loading: () => (
-    <div className="flex items-center justify-center h-full">
+    <div className="flex items-center justify-center h-full bg-gray-50">
       <div className="animate-pulse text-gray-400 text-sm font-medium">Cargando libro...</div>
     </div>
   )
@@ -48,7 +48,7 @@ export default function PresaleHero() {
     return () => clearInterval(interval);
   }, []);
 
-  // --- LÓGICA DE PAGO REAL (Restaurada) ---
+  // --- LÓGICA DE PAGO REAL ---
   const handlePurchase = async () => {
     // 1. Pixel de Meta
     const ReactPixel = (await import("react-facebook-pixel")).default;
@@ -101,8 +101,9 @@ export default function PresaleHero() {
   return (
     <section className="relative bg-white overflow-hidden flex flex-col lg:flex-row max-w-7xl mx-auto min-h-[auto] lg:min-h-[90vh]">
       
-      {/* 1. ZONA DE TEXTO */}
-      <div className="w-full lg:w-1/2 flex items-center z-10 bg-white p-6 sm:px-12 py-6 lg:p-10 lg:order-1">
+      {/* 1. ZONA DE TEXTO (VA PRIMERO) */}
+      {/* En móvil: Padding pequeño (px-4) y padding vertical ajustado. En Desktop: Padding grande. */}
+      <div className="w-full lg:w-1/2 flex items-center z-10 bg-white px-4 pt-8 pb-4 sm:px-12 lg:p-10 lg:order-1">
         <div className="w-full max-w-xl mx-auto lg:mx-0">
             
             {/* Etiqueta */}
@@ -166,9 +167,11 @@ export default function PresaleHero() {
         </div>
       </div>
 
-      {/* 2. ZONA DEL LIBRO 3D */}
+      {/* 2. ZONA DEL LIBRO 3D (VA SEGUNDO) */}
+      {/* Altura fija de 350px en móvil para que se vea bien */}
       <div className="w-full h-[350px] lg:w-1/2 lg:h-auto bg-gray-50 relative z-0 flex items-center justify-center lg:order-2">
         <Book3DScene />
+        {/* Degradado para suavizar la unión en móvil */}
         <div className="absolute inset-0 bg-gradient-to-b from-white via-transparent to-gray-50 lg:hidden pointer-events-none"></div>
       </div>
 
@@ -176,7 +179,7 @@ export default function PresaleHero() {
   );
 }
 
-// Componente auxiliar para el contador
+// Componente auxiliar
 function CounterBox({ value, label }: { value: number, label: string }) {
   return (
     <div className="flex flex-col items-center bg-white border-2 border-gray-100 p-2 rounded-lg min-w-[60px] shadow-sm">
