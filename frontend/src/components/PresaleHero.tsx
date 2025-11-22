@@ -52,8 +52,6 @@ export default function PresaleHero() {
             publicKey: data.publicKey,
             signature: { integrity: data.signature }, 
             redirectUrl: 'https://www.gacetaingles.com/gracias',
-            expirationTime: '2025-12-30T20:00:00-05:00',
-            taxInCents: { vat: 0, consumption: 0 }
           });
           
           checkout.open((result: any) => {
