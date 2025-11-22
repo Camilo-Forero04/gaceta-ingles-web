@@ -121,12 +121,12 @@ export default function PresaleHero() {
               </div>
 
               <h1 className="text-4xl tracking-tight font-extrabold text-gray-900 sm:text-5xl md:text-6xl mb-6">
-                <span className="block xl:inline">Domina el Inglés con</span>{" "}
-                <span className="block text-indigo-600 xl:inline">La Gaceta del Inglés</span>
+                <span className="block xl:inline">Desbloquea tu fluidez con</span>{" "}
+                <span className="block text-indigo-600 xl:inline">el Método IA SPOKEN</span>
               </h1>
               
               <p className="mt-3 text-base text-gray-500 sm:mt-5 sm:text-lg sm:max-w-xl sm:mx-auto md:mt-5 md:text-xl lg:mx-0 mb-6">
-                Olvídate de traducir mentalmente. Reserva hoy tu manual definitivo y ahorra un <strong>{AHORRO}%</strong> antes del lanzamiento oficial.
+                Las academias te enseñan a memorizar. La IA te enseña a hablar. Únete a la revolución y ahorra un <strong>{AHORRO}%</strong> antes del lanzamiento oficial.
               </p>
 
               {/* --- BLOQUE DEL CONTADOR (NUEVO) --- */}
