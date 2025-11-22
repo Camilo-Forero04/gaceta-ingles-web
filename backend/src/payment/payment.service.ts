@@ -18,28 +18,34 @@ export class PaymentService {
   public getPresaleSignature() {
     const currency = 'COP';
     const priceInCents = 2670000; 
-    
-    // 1. REFERENCIA DINÁMICA (Obligatorio para producción)
     const reference = `GACETA-${Date.now()}`; 
 
-    // 2. LEER LLAVES DE RAILWAY (Producción)
-    const integritySecret = this.configService.get<string>('WOMPI_INTEGRITY_SECRET');
-    const publicKey = this.configService.get<string>('WOMPI_PUB_KEY');
+    // ☢️ ZONA NUCLEAR: Pegamos las llaves reales aquí directo
+    // (Asegúrate de que queden dentro de las comillas)
+    
+    const integritySecret = "prod_integrity_cqVlvM0EZ6PvlxXT15twJDlany5NOgAB"; 
+    const publicKey = "pub_prod_Wcu7XrFi4wzelvB4V7cLKhMW63dNyj0K";
 
-    if (!integritySecret || !publicKey) {
-      throw new Error('Faltan las llaves de Wompi en las Variables de Entorno');
-    }
+    // ---------------------------------------------------------
 
-    // 3. FIRMAR
-    const chain = `${reference}${priceInCents}${currency}${integritySecret}`;
+    // Limpieza paranoica (por si pegaste espacios sin querer)
+    const cleanSecret = integritySecret.trim();
+    const cleanPublic = publicKey.trim();
+
+    // Crear cadena
+    const chain = `${reference}${priceInCents}${currency}${cleanSecret}`;
+    
+    // Encriptar
     const signature = crypto.createHash('sha256').update(chain).digest('hex');
+
+    console.log("🔐 FIRMANDO CON:", cleanSecret.substring(0, 10) + "..."); // Para ver en logs
 
     return {
       reference,
       amountInCents: priceInCents,
       currency,
       signature,
-      publicKey
+      publicKey: cleanPublic
     };
   }
 
