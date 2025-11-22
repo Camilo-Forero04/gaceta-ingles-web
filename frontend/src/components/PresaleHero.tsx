@@ -59,7 +59,7 @@ export default function PresaleHero() {
     // - 'flex flex-col': En móvil, los elementos se apilan verticalmente.
     // - 'lg:flex-row': En escritorio, se ponen uno al lado del otro.
     // - 'min-h-[90vh]': Asegura que la sección tenga buena altura en escritorio.
-    <section className="relative bg-white overflow-hidden flex flex-col lg:flex-row max-w-7xl mx-auto min-h-[auto] lg:min-h-[90vh]">
+    <section className="relative bg-white overflow-hidden flex flex-col lg:flex-row max-w-7xl mx-auto min-h-[auto] lg:min-h-[90vh]" id="#metodo">
       
       {/* 2. ZONA DEL LIBRO 3D (SECCIÓN DERECHA/SUPERIOR):
         - 'w-full lg:w-1/2': Ocupa todo el ancho en móvil, la mitad en escritorio.
@@ -81,10 +81,12 @@ export default function PresaleHero() {
         - 'lg:order-1': En escritorio, va a la izquierda (primer lugar).
         - 'z-10 bg-white': Asegura que el texto esté sobre cualquier elemento y tenga fondo blanco.
       */}
-      <div className="w-full lg:w-1/2 flex items-center z-10 bg-white p-6 sm:px-12 py-8 lg:py-12 lg:px-16 lg:order-1">
+{/* 3. ZONA DE TEXTO (Ajustada para subir el botón) */}
+      <div className="w-full lg:w-1/2 flex items-center z-10 bg-white p-6 sm:px-12 py-6 lg:p-10 lg:order-1">
         <div className="w-full max-w-xl mx-auto lg:mx-0">
-            {/* Etiqueta */}
-            <div className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-indigo-100 text-indigo-800 mb-6">
+            
+            {/* Etiqueta - Reducido margen inferior (mb-4) */}
+            <div className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-indigo-100 text-indigo-800 mb-4">
               <span className="flex h-2 w-2 relative mr-2">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-indigo-500"></span>
@@ -92,31 +94,43 @@ export default function PresaleHero() {
               Fase de Preventa Activa
             </div>
 
-            {/* Título Principal */}
-            <h1 className="text-4xl tracking-tight font-extrabold text-gray-900 sm:text-5xl md:text-6xl mb-6 leading-tight">
+            {/* Título - Reducido margen inferior (mb-4) */}
+            <h1 className="text-4xl tracking-tight font-extrabold text-gray-900 sm:text-5xl md:text-6xl mb-4 leading-tight">
               Desbloquea tu fluidez con <span className="text-indigo-600 block lg:inline">el Método IA SPOKEN</span>
             </h1>
             
-            {/* Subtítulo */}
-            <p className="mt-3 text-base text-gray-500 sm:text-lg md:text-xl mb-8 leading-relaxed">
+            {/* Subtítulo - Reducido margen inferior (mb-6) */}
+            <p className="mt-2 text-base text-gray-500 sm:text-lg md:text-xl mb-6 leading-relaxed">
               Las academias te enseñan a memorizar. La IA te enseña a hablar. Únete a la revolución y ahorra un <strong>{AHORRO}%</strong> antes del lanzamiento oficial.
             </p>
 
-            {/* Contador */}
+            {/* Contador - Reducido margen inferior (mb-6) */}
             {isMounted && (
-              <div className="flex flex-wrap gap-3 mb-8">
-                {/* (He simplificado un poco el diseño de las cajitas del contador para que se vean más limpias) */}
-                <CounterBox value={timeLeft.days} label="Días" />
-                <CounterBox value={timeLeft.hours} label="Horas" />
-                <CounterBox value={timeLeft.minutes} label="Min" />
-                <div className="flex items-center text-sm text-red-600 font-medium animate-pulse ml-2 bg-red-50 px-3 py-1 rounded-full">
+              <div className="flex flex-wrap gap-3 mb-6">
+                <div className="flex flex-col items-center bg-gray-50 border border-gray-200 p-2 rounded-lg min-w-[65px]">
+                  <span className="text-xl font-bold text-indigo-600">{timeLeft.days}</span>
+                  <span className="text-[10px] text-gray-500 uppercase">Días</span>
+                </div>
+                <div className="flex flex-col items-center bg-gray-50 border border-gray-200 p-2 rounded-lg min-w-[65px]">
+                  <span className="text-xl font-bold text-indigo-600">{timeLeft.hours}</span>
+                  <span className="text-[10px] text-gray-500 uppercase">Horas</span>
+                </div>
+                <div className="flex flex-col items-center bg-gray-50 border border-gray-200 p-2 rounded-lg min-w-[65px]">
+                  <span className="text-xl font-bold text-indigo-600">{timeLeft.minutes}</span>
+                  <span className="text-[10px] text-gray-500 uppercase">Min</span>
+                </div>
+                <div className="flex flex-col items-center bg-gray-50 border border-gray-200 p-2 rounded-lg min-w-[65px]">
+                  <span className="text-xl font-bold text-indigo-600">{timeLeft.seconds}</span>
+                  <span className="text-[10px] text-gray-500 uppercase">Seg</span>
+                </div>
+                <div className="flex items-center text-xs text-red-600 font-medium animate-pulse ml-1 bg-red-50 px-2 py-1 rounded-full">
                   ⚠️ ¡La oferta termina pronto!
                 </div>
               </div>
             )}
 
-            {/* Precios */}
-            <div className="flex items-center gap-4 mb-8">
+            {/* Precios - Reducido margen inferior (mb-6) */}
+            <div className="flex items-center gap-4 mb-6">
               <div className="flex items-baseline gap-1">
                   <span className="text-4xl sm:text-5xl font-extrabold text-gray-900">
                   ${PRECIO_PREVENTA.toLocaleString('es-CO')}
@@ -129,7 +143,7 @@ export default function PresaleHero() {
             </div>
 
             {/* Botón de Compra */}
-            <div className="mt-8">
+            <div className="mt-4">
                 <button
                   onClick={handlePurchase}
                   disabled={isLoading}
@@ -137,7 +151,7 @@ export default function PresaleHero() {
                 >
                   {isLoading ? "Procesando..." : "Reservar mi Copia Ahora 👉"}
                 </button>
-                <p className="mt-4 text-xs text-gray-400 flex items-center">
+                <p className="mt-3 text-xs text-gray-400 flex items-center">
                   🔒 Pago 100% seguro procesado por Wompi Colombia.
                 </p>
             </div>
