@@ -7,76 +7,74 @@ import { useEffect } from "react";
 
 // Sub-componente para leer la URL de forma segura
 function GraciasContent() {
+  const searchParams = useSearchParams();
+  const transactionId = searchParams.get("id");
 
-    const searchParams = useSearchParams();
-    const transactionId = searchParams.get("id"); // Leemos el ID que nos mandó el redirect
-
-
-  // Disparar el evento SOLO una vez cuando carga la página
-  useEffect(() => {
-    if (transactionId) {
-      // ✅ IMPORT DINÁMICO (Solo se carga en el navegador)
-      import("react-facebook-pixel")
-        .then((x) => x.default)
-        .then((ReactPixel) => {
-          ReactPixel.track("Purchase", {
-            currency: "COP",
-            value: 26700,
-            content_name: "La Gaceta del Inglés",
-            order_id: transactionId
-          });
-        });
-    }
-  }, [transactionId]);
-    
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
-      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10 text-center">
-          
-          {/* Círculo Verde con Check */}
-          <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-green-100 mb-6">
-            <svg className="h-8 w-8 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
-            </svg>
-          </div>
-
-          <h2 className="text-3xl font-extrabold text-gray-900 mb-4">
-            ¡Reserva Exitosa!
-          </h2>
-          
-          <div className="text-sm text-gray-500 mb-8 bg-gray-100 p-3 rounded-md border border-gray-200">
-            Referencia: <span className="font-mono text-gray-800">{transactionId || "N/A"}</span>
-          </div>
-
-          <div className="border-t border-gray-200 pt-6 text-left">
-            <h3 className="text-lg font-medium text-gray-900 mb-3">Próximos pasos:</h3>
-            <ul className="space-y-3 text-sm text-gray-600">
-              <li className="flex items-start">
-                <span className="mr-2">📧</span>
-                Tu cupo para la preventa ha quedado asegurado.
-              </li>
-              <li className="flex items-start">
-                <span className="mr-2">📅</span>
-                El <strong>15 de Diciembre</strong> recibirás el eBook automáticamente en tu correo.
-              </li>
-              <li className="flex items-start">
-                <span className="mr-2">🛡️</span>
-                Revisa tu carpeta de Spam ese día por si acaso.
-              </li>
-            </ul>
-          </div>
-
-          <div className="mt-8">
-            <Link 
-              href="/"
-              className="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 transition-colors"
-            >
-              Volver al Inicio
-            </Link>
-          </div>
-
+    // 1. Quitamos 'min-h-screen' y usamos 'py-20' para dar buen espacio
+    <div className="bg-gray-50 flex flex-col items-center justify-center py-20 px-4 sm:px-6 lg:px-8 h-full">
+      <div className="w-full max-w-md bg-white py-8 px-6 shadow-xl rounded-2xl text-center border border-gray-100">
+        
+        {/* Check Animado */}
+        <div className="mx-auto flex items-center justify-center h-20 w-20 rounded-full bg-green-100 mb-6 animate-bounce">
+          <svg className="h-10 w-10 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" />
+          </svg>
         </div>
+
+        <h2 className="text-3xl font-extrabold text-gray-900 mb-2">
+          ¡Reserva Exitosa!
+        </h2>
+        
+        <p className="text-gray-500 mb-6">
+          Tu referencia de pago es: <br/>
+          <span className="font-mono text-xs bg-gray-100 p-1 px-2 rounded mt-1 inline-block">
+            {transactionId || "Procesando..."}
+          </span>
+        </p>
+
+        <div className="border-t border-gray-100 pt-6 text-left space-y-4">
+          <h3 className="text-lg font-semibold text-gray-900">Próximos pasos:</h3>
+          
+          <div className="flex items-start gap-3">
+            <div className="mt-1 bg-blue-100 p-1 rounded-full">
+               <span className="text-sm">🎟️</span>
+            </div>
+            <p className="text-sm text-gray-600">
+              Tu cupo para la preventa ha quedado 100% asegurado.
+            </p>
+          </div>
+
+          {/* AQUÍ ESTÁ EL ARREGLO DE LA FECHA */}
+          <div className="flex items-start gap-3 bg-indigo-50 p-3 rounded-lg border border-indigo-100">
+            <div className="mt-0.5">
+               <span className="text-lg">📅</span>
+            </div>
+            <div className="text-sm text-gray-700">
+              El <span className="font-bold text-indigo-700 bg-indigo-100 px-2 py-0.5 rounded mx-1">15 de Diciembre</span> 
+              recibirás el eBook automáticamente en tu correo.
+            </div>
+          </div>
+
+          <div className="flex items-start gap-3">
+            <div className="mt-1 bg-yellow-100 p-1 rounded-full">
+               <span className="text-sm">🛡️</span>
+            </div>
+            <p className="text-sm text-gray-600">
+              Revisa tu carpeta de <strong>Spam</strong> o Promociones, a veces el correo se esconde ahí.
+            </p>
+          </div>
+        </div>
+
+        <div className="mt-8">
+          <Link 
+            href="/"
+            className="block w-full py-3 px-4 border border-transparent rounded-xl shadow-md text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-700 transition-all transform hover:-translate-y-0.5"
+          >
+            Volver al Inicio
+          </Link>
+        </div>
+
       </div>
     </div>
   );

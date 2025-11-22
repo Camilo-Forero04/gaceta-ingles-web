@@ -1,6 +1,7 @@
 "use client"; 
 
-import { useState } from "react";
+import Image from "next/image";
+import { useState, useEffect } from "react"; // <--- Agregamos useEffect
 import dynamic from "next/dynamic";
 
 // Import dinámico del libro para evitar errores de SSR
@@ -15,33 +16,59 @@ const Book3DScene = dynamic(() => import("./Book3DScene"), {
 
 export default function PresaleHero() {
   const [isLoading, setIsLoading] = useState(false);
+  
+  // --- LÓGICA DEL CONTADOR ---
+  const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+  const [isMounted, setIsMounted] = useState(false); // Para evitar errores de hidratación
 
   const PRECIO_FULL = 49000;
   const PRECIO_PREVENTA = 26700;
   const AHORRO = Math.round(((PRECIO_FULL - PRECIO_PREVENTA) / PRECIO_FULL) * 100);
-  const FECHA_LANZAMIENTO = "15 de Diciembre, 2025"; 
+  // FECHA LÍMITE (Formato: AÑO-MES-DIA T HORA:MIN:SEG)
+  const TARGET_DATE = "2025-12-15T00:00:00"; 
+
+  useEffect(() => {
+    setIsMounted(true);
+    const target = new Date(TARGET_DATE).getTime();
+
+    const interval = setInterval(() => {
+      const now = new Date().getTime();
+      const difference = target - now;
+
+      if (difference > 0) {
+        setTimeLeft({
+          days: Math.floor(difference / (1000 * 60 * 60 * 24)),
+          hours: Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)),
+          minutes: Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60)),
+          seconds: Math.floor((difference % (1000 * 60)) / 1000),
+        });
+      } else {
+        clearInterval(interval); // Si llega a 0, detiene el contador
+      }
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, []);
+  // ---------------------------
 
   const handlePurchase = async () => {
+    // 1. Pixel de Meta (Intención)
+    const ReactPixel = (await import("react-facebook-pixel")).default;
+    ReactPixel.track("InitiateCheckout", {
+        currency: "COP",
+        value: 26700,
+        content_name: "La Gaceta del Inglés (Preventa)"
+    });
+
     setIsLoading(true);
 
     try {
-       // 1. Pixel de Meta
-       const ReactPixel = (await import("react-facebook-pixel")).default;
-       ReactPixel.track("InitiateCheckout", {
-           currency: "COP",
-           value: 26700,
-           content_name: "La Gaceta del Inglés (Preventa)"
-       });
-
-       // 2. Pedir firma al Backend
-       // OJO: Asegúrate de que esta URL sea la tuya de Railway con HTTPS
+       // 2. Pedir firma al Backend (Producción)
        const response = await fetch('https://gaceta-ingles-web-production.up.railway.app/payment/presale-info');
        
        if (!response.ok) throw new Error("Error conectando con el servidor de pagos");
        
        const data = await response.json();
-
-       console.log("🚀 Iniciando Wompi con:", data); 
 
        // 3. Abrir Widget de Wompi REAL
        if (typeof (window as any).WidgetCheckout !== 'undefined') {
@@ -52,6 +79,7 @@ export default function PresaleHero() {
             publicKey: data.publicKey,
             signature: { integrity: data.signature }, 
             redirectUrl: 'https://www.gacetaingles.com/gracias',
+            // expirationTime y taxInCents quitados para evitar errores
           });
           
           checkout.open((result: any) => {
@@ -77,7 +105,6 @@ export default function PresaleHero() {
       <div className="max-w-7xl mx-auto">
         <div className="relative z-10 pb-8 bg-white sm:pb-16 md:pb-20 lg:max-w-2xl lg:w-full lg:pb-28 xl:pb-32">
           
-          {/* Fondo decorativo */}
           <svg className="hidden lg:block absolute right-0 inset-y-0 h-full w-48 text-white transform translate-x-1/2" fill="currentColor" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
             <polygon points="50,0 100,0 50,100 0,100" />
           </svg>
@@ -98,11 +125,37 @@ export default function PresaleHero() {
                 <span className="block text-indigo-600 xl:inline">La Gaceta del Inglés</span>
               </h1>
               
-              <p className="mt-3 text-base text-gray-500 sm:mt-5 sm:text-lg sm:max-w-xl sm:mx-auto md:mt-5 md:text-xl lg:mx-0 mb-8">
+              <p className="mt-3 text-base text-gray-500 sm:mt-5 sm:text-lg sm:max-w-xl sm:mx-auto md:mt-5 md:text-xl lg:mx-0 mb-6">
                 Olvídate de traducir mentalmente. Reserva hoy tu manual definitivo y ahorra un <strong>{AHORRO}%</strong> antes del lanzamiento oficial.
               </p>
 
-              <div className="flex flex-col sm:flex-row items-center gap-4 mb-8 sm:justify-center lg:justify-start">
+              {/* --- BLOQUE DEL CONTADOR (NUEVO) --- */}
+              {isMounted && (
+                <div className="flex flex-wrap gap-4 mb-8 sm:justify-center lg:justify-start">
+                  <div className="flex flex-col items-center bg-gray-50 border border-gray-200 p-2 rounded-lg min-w-[70px]">
+                    <span className="text-2xl font-bold text-indigo-600">{timeLeft.days}</span>
+                    <span className="text-xs text-gray-500 uppercase">Días</span>
+                  </div>
+                  <div className="flex flex-col items-center bg-gray-50 border border-gray-200 p-2 rounded-lg min-w-[70px]">
+                    <span className="text-2xl font-bold text-indigo-600">{timeLeft.hours}</span>
+                    <span className="text-xs text-gray-500 uppercase">Horas</span>
+                  </div>
+                  <div className="flex flex-col items-center bg-gray-50 border border-gray-200 p-2 rounded-lg min-w-[70px]">
+                    <span className="text-2xl font-bold text-indigo-600">{timeLeft.minutes}</span>
+                    <span className="text-xs text-gray-500 uppercase">Min</span>
+                  </div>
+                  <div className="flex flex-col items-center bg-gray-50 border border-gray-200 p-2 rounded-lg min-w-[70px]">
+                    <span className="text-2xl font-bold text-indigo-600">{timeLeft.seconds}</span>
+                    <span className="text-xs text-gray-500 uppercase">Seg</span>
+                  </div>
+                  <div className="flex items-center text-sm text-red-500 font-medium animate-pulse ml-2">
+                    ⚠️ ¡La oferta termina pronto!
+                  </div>
+                </div>
+              )}
+              {/* ----------------------------------- */}
+
+              <div className="flex flex-col sm:flex-row items-center gap-4 mb-6 sm:justify-center lg:justify-start">
                 <div className="flex items-baseline gap-2">
                     <span className="text-5xl font-extrabold text-gray-900">
                     ${PRECIO_PREVENTA.toLocaleString('es-CO')}
@@ -113,10 +166,6 @@ export default function PresaleHero() {
                   ${PRECIO_FULL.toLocaleString('es-CO')}
                 </span>
               </div>
-
-              <p className="text-sm text-gray-500 mb-6 sm:text-center lg:text-left">
-                📅 Entrega automática el: <span className="font-bold text-gray-800">{FECHA_LANZAMIENTO}</span>
-              </p>
 
               <div className="mt-5 sm:mt-8 sm:flex sm:justify-center lg:justify-start">
                 <div className="rounded-md shadow">
@@ -137,7 +186,7 @@ export default function PresaleHero() {
         </div>
       </div>
       
-      {/* Zona de Imagen 3D (Ajustada para móviles) */}
+      {/* Zona de Imagen 3D */}
       <div className="lg:absolute lg:inset-y-0 lg:right-0 lg:w-1/2 bg-gray-50 flex items-center justify-center h-[450px] lg:h-full">
         <Book3DScene />
       </div>
