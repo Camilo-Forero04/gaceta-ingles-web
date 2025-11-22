@@ -1,9 +1,9 @@
 "use client"; 
 
-import Image from "next/image";
 import { useState } from "react";
 import dynamic from "next/dynamic";
 
+// Import dinámico del libro para evitar errores de SSR
 const Book3DScene = dynamic(() => import("./Book3DScene"), { 
   ssr: false,
   loading: () => (
@@ -22,47 +22,42 @@ export default function PresaleHero() {
   const FECHA_LANZAMIENTO = "15 de Diciembre, 2025"; 
 
   const handlePurchase = async () => {
-    // 1. Pixel de Meta (Intención)
-    const ReactPixel = (await import("react-facebook-pixel")).default;
-    ReactPixel.track("InitiateCheckout", {
-        currency: "COP",
-        value: 26700,
-        content_name: "La Gaceta del Inglés (Preventa)"
-    });
-
     setIsLoading(true);
 
     try {
-       // 2. Pedir firma al Backend (Railway)
-       // Asegúrate de que esta URL es tuya y tiene HTTPS
+       // 1. Pixel de Meta
+       const ReactPixel = (await import("react-facebook-pixel")).default;
+       ReactPixel.track("InitiateCheckout", {
+           currency: "COP",
+           value: 26700,
+           content_name: "La Gaceta del Inglés (Preventa)"
+       });
+
+       // 2. Pedir firma al Backend
+       // OJO: Asegúrate de que esta URL sea la tuya de Railway con HTTPS
        const response = await fetch('https://gaceta-ingles-web-production.up.railway.app/payment/presale-info');
        
        if (!response.ok) throw new Error("Error conectando con el servidor de pagos");
        
        const data = await response.json();
 
-       console.log("🕵️‍♂️ DATOS QUE ENVIAMOS A WOMPI:");
-       console.log("Llave Pública:", data.publicKey);
-       console.log("Referencia:", data.reference);
-       console.log("Monto:", data.amountInCents);
-       console.log("Firma:", data.signature);
+       console.log("🚀 Iniciando Wompi con:", data); 
 
-       // 3. Abrir Widget de Wompi
+       // 3. Abrir Widget de Wompi REAL
        if (typeof (window as any).WidgetCheckout !== 'undefined') {
           const checkout = new (window as any).WidgetCheckout({
             currency: 'COP',
             amountInCents: Number(data.amountInCents),
             reference: data.reference,
-            publicKey: data.publicKey, // Aquí llegará la llave pub_prod_...
-            signature: { integrity: data.signature },
-            redirectUrl: 'https://www.gacetaingles.com/gracias', // URL REAL
+            publicKey: data.publicKey,
+            signature: { integrity: data.signature }, 
+            redirectUrl: 'https://www.gacetaingles.com/gracias',
             expirationTime: '2025-12-30T20:00:00-05:00',
             taxInCents: { vat: 0, consumption: 0 }
           });
           
           checkout.open((result: any) => {
             const transaction = result.transaction;
-            // Si Wompi redirige automático, esto es un respaldo
             if (transaction.status === 'APPROVED') {
                 window.location.href = `/gracias?id=${transaction.id}`;
             }
@@ -84,6 +79,7 @@ export default function PresaleHero() {
       <div className="max-w-7xl mx-auto">
         <div className="relative z-10 pb-8 bg-white sm:pb-16 md:pb-20 lg:max-w-2xl lg:w-full lg:pb-28 xl:pb-32">
           
+          {/* Fondo decorativo */}
           <svg className="hidden lg:block absolute right-0 inset-y-0 h-full w-48 text-white transform translate-x-1/2" fill="currentColor" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
             <polygon points="50,0 100,0 50,100 0,100" />
           </svg>
@@ -143,6 +139,7 @@ export default function PresaleHero() {
         </div>
       </div>
       
+      {/* Zona de Imagen 3D (Ajustada para móviles) */}
       <div className="lg:absolute lg:inset-y-0 lg:right-0 lg:w-1/2 bg-gray-50 flex items-center justify-center h-[450px] lg:h-full">
         <Book3DScene />
       </div>
