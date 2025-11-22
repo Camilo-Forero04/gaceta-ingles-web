@@ -171,8 +171,6 @@ export default function PresaleHero() {
       {/* Altura fija de 350px en móvil para que se vea bien */}
       <div className="w-full h-[350px] lg:w-1/2 lg:h-auto bg-gray-50 relative z-0 flex items-center justify-center lg:order-2">
         <Book3DScene />
-        {/* Degradado para suavizar la unión en móvil */}
-        <div className="absolute inset-0 bg-gradient-to-b from-white via-transparent to-gray-50 lg:hidden pointer-events-none"></div>
       </div>
 
     </section>
