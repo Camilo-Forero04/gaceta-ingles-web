@@ -11,10 +11,6 @@ export default function Home() {
       {/* Componente Hero */}
       <PresaleHero />
 
-      {/* Componente Footer (Pendiente) */}
-      <footer className="p-10 border-t text-center text-sm text-gray-400 mt-10">
-        © 2025 La Gaceta del Inglés. Todos los derechos reservados.
-      </footer>
     </main>
   );
 }

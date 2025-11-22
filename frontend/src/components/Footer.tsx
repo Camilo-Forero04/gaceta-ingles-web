@@ -39,7 +39,7 @@ export default function Footer() {
         {/* 3. REDES SOCIALES */}
         <div className="flex gap-6 mb-12">
             <a 
-            href="https://wa.me/573001234567?text=Hola..."
+            href="https://wa.me/573017014244?text=Hola..."
             target="_blank"
             className="text-gray-400 hover:text-[#25D366] hover:scale-110 transition-all"
           >
