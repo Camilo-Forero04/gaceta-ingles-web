@@ -1,8 +1,8 @@
-import { FaCheckCircle, FaRobot, FaMicrophoneAlt, FaBrain, FaGift, FaLockOpen } from "react-icons/fa";
+import { FaCheckCircle, FaRobot, FaMicrophoneAlt, FaBrain, FaGift, FaLock } from "react-icons/fa";
 
 const modules = [
   {
-    title: "Módulo 1: Reseteo Mental",
+    title: "Módulo 1: El reseteo Mental",
     description: "Por qué tu cerebro se bloquea al hablar y cómo la IA elimina ese miedo en 24 horas.",
     icon: <FaBrain className="text-white" size={20} />,
     color: "bg-pink-500"
@@ -61,35 +61,47 @@ export default function Syllabus() {
           ))}
         </div>
 
-        {/* --- EL BONUS "GOLDEN TICKET" --- */}
+        {/* --- EL BONUS "VIP / INCALCULABLE" --- */}
         <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-amber-50 to-orange-50 border border-orange-200 p-8 shadow-sm">
           {/* Elemento decorativo de fondo */}
-          <div className="absolute top-0 right-0 -mt-4 -mr-4 w-24 h-24 bg-orange-400 rounded-full opacity-10 blur-2xl"></div>
+          <div className="absolute top-0 right-0 -mt-4 -mr-4 w-32 h-32 bg-orange-400 rounded-full opacity-5 blur-3xl"></div>
           
           <div className="flex flex-col md:flex-row items-center justify-between gap-6 relative z-10">
-            <div className="flex items-center gap-4">
-              <div className="flex-shrink-0 h-16 w-16 bg-orange-100 text-orange-600 rounded-full flex items-center justify-center shadow-sm border border-orange-200">
-                <FaGift size={30} />
+            
+            {/* Lado Izquierdo: Texto persuasivo */}
+            <div className="flex items-start gap-4">
+              <div className="flex-shrink-0 h-14 w-14 bg-orange-100 text-orange-600 rounded-xl flex items-center justify-center shadow-sm border border-orange-200 mt-1">
+                <FaGift size={26} />
               </div>
               <div className="text-center md:text-left">
-                <h3 className="text-xl font-extrabold text-gray-900 flex items-center gap-2 justify-center md:justify-start">
-                  BONUS DE ACCIÓN RÁPIDA
-                  <span className="bg-orange-100 text-orange-700 text-xs px-2 py-1 rounded-full border border-orange-200">Limitado</span>
+                <div className="flex items-center justify-center md:justify-start gap-2 mb-1">
+                    <span className="bg-orange-100 text-orange-800 text-[10px] font-bold px-2 py-0.5 rounded-full border border-orange-200 uppercase tracking-wider">
+                        Solo en Preventa
+                    </span>
+                </div>
+                <h3 className="text-xl font-extrabold text-gray-900">
+                  BONUS EXCLUSIVO: Lista de Prompts Secretos
                 </h3>
-                <p className="text-gray-700 font-medium mt-1">
-                  La Bóveda de Prompts Prohibidos
-                </p>
-                <p className="text-sm text-gray-500 mt-1">
-                  Copia y pega estos comandos secretos en ChatGPT para que actúe como profesor de Cambridge.
+                <p className="text-gray-600 mt-2 leading-relaxed max-w-xl">
+                  Acceso directo a la "Bóveda de Comandos" para convertir a ChatGPT en tu profesor nativo. 
+                  <span className="italic text-gray-500"> (Estos son los prompts que usamos internamente).</span>
                 </p>
               </div>
             </div>
 
-            <div className="text-center bg-white/60 backdrop-blur-sm p-4 rounded-xl border border-orange-100 shadow-sm">
-              <p className="text-xs text-gray-500 uppercase tracking-wide font-bold mb-1">Valor Real</p>
-              <p className="text-2xl font-bold text-gray-400 line-through">$15 USD</p>
-              <p className="text-lg font-extrabold text-green-600 mt-1">¡GRATIS HOY!</p>
+            {/* Lado Derecho: La caja de "Incalculable" */}
+            <div className="flex-shrink-0">
+                <div className="bg-white/80 backdrop-blur-sm px-6 py-4 rounded-xl border-2 border-orange-100 shadow-sm flex flex-col items-center justify-center min-w-[180px]">
+                    <div className="text-orange-500 mb-2">
+                        <FaLock size={20} />
+                    </div>
+                    <p className="text-xs text-gray-400 uppercase tracking-widest font-bold mb-1">Disponibilidad</p>
+                    <p className="text-sm font-bold text-gray-800 text-center leading-tight">
+                        No disponible a la <br/> venta por separado
+                    </p>
+                </div>
             </div>
+
           </div>
         </div>
 
