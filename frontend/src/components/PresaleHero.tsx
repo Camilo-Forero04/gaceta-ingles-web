@@ -68,7 +68,7 @@ export default function PresaleHero() {
         - 'lg:order-2': En escritorio, va a la derecha (segundo lugar).
         - 'bg-gray-50': Un fondo gris sutil para diferenciar el área 3D.
       */}
-      <div className="w-full h-[50vh] min-h-[450px] lg:w-1/2 lg:h-auto bg-gray-50 lg:order-2 relative z-0">
+      <div className="lg:absolute lg:inset-y-0 lg:right-0 lg:w-1/2 bg-gray-50 flex items-center justify-center h-[320px] lg:h-full">
         <Book3DScene />
         {/* Decoración sutil de fondo opcional */}
         <div className="absolute inset-0 bg-gradient-to-t from-white via-transparent to-transparent opacity-40 lg:hidden pointer-events-none"></div>
@@ -81,7 +81,7 @@ export default function PresaleHero() {
         - 'lg:order-1': En escritorio, va a la izquierda (primer lugar).
         - 'z-10 bg-white': Asegura que el texto esté sobre cualquier elemento y tenga fondo blanco.
       */}
-      <div className="w-full lg:w-1/2 flex items-center z-10 bg-white p-6 sm:px-12 sm:py-16 lg:p-16 lg:order-1">
+      <div className="w-full lg:w-1/2 flex items-center z-10 bg-white p-6 sm:px-12 py-8 lg:py-12 lg:px-16 lg:order-1">
         <div className="w-full max-w-xl mx-auto lg:mx-0">
             {/* Etiqueta */}
             <div className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-indigo-100 text-indigo-800 mb-6">
