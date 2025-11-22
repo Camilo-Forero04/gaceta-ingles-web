@@ -16,26 +16,32 @@ export class PaymentService {
   }
 
 public getPresaleSignature() {
-    const currency = 'COP';
-    const priceInCents = 2670000; 
-    const reference = `GACETA-${Date.now()}`; 
+  const currency = 'COP';
+  const priceInCents = 2670000;
+  const reference = `GACETA-${Date.now()}`;
 
-    // ✅ VOLVEMOS A LA FORMA SEGURA:
-    const integritySecret = this.configService.get<string>('WOMPI_INTEGRITY_SECRET');
-    const publicKey = this.configService.get<string>('WOMPI_PUB_KEY');
+  const integritySecret = this.configService.get<string>('WOMPI_INTEGRITY_SECRET');
+  const publicKey = this.configService.get<string>('WOMPI_PUB_KEY');
 
-    if (!integritySecret || !publicKey) {
-      throw new Error('Faltan llaves');
-    }
-    
-    // (Puedes dejar el console.log de diagnóstico si quieres, no hace daño)
-    console.log("🔐 Usando llave que empieza por:", integritySecret?.substring(0,10));
-
-    const chain = `${reference}${priceInCents}${currency}${integritySecret}`;
-    const signature = crypto.createHash('sha256').update(chain).digest('hex');
-
-    return { reference, amountInCents: priceInCents, currency, signature, publicKey };
+  if (!integritySecret || !publicKey) {
+    throw new Error('Faltan llaves de Wompi');
   }
+
+  const message = `${reference}${priceInCents}${currency}`;
+
+  const signature = crypto
+    .createHmac('sha256', integritySecret)
+    .update(message)
+    .digest('hex');
+
+  return {
+    reference,
+    amountInCents: priceInCents,
+    currency,
+    signature,
+    publicKey,
+  };
+}
 
   async handleWebhook(event: any) {
     const transaction = event?.data?.transaction;
