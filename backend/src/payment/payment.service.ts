@@ -15,14 +15,14 @@ export class PaymentService {
     this.resend = new Resend(this.configService.get<string>('RESEND_API_KEY'));
   }
 
-  public getPresaleSignature() {
+public getPresaleSignature() {
     const currency = 'COP';
-    const priceInCents = 2670000; // $26.700 COP
+    const priceInCents = 2670000; 
     
-    // 1. REFERENCIA ÚNICA: Usamos timestamp para que nunca se repita
+    // Referencia dinámica
     const reference = `GACETA-${Date.now()}`; 
 
-    // 2. LEER DE RAILWAY: Usamos las variables de entorno (PROD)
+    // 1. LEER LLAVES DE RAILWAY
     const integritySecret = this.configService.get<string>('WOMPI_INTEGRITY_SECRET');
     const publicKey = this.configService.get<string>('WOMPI_PUB_KEY');
 
@@ -30,8 +30,15 @@ export class PaymentService {
       throw new Error('Faltan las llaves de Wompi en las Variables de Entorno');
     }
 
-    // 3. Generar Firma de Integridad
+    // 👇 DIAGNÓSTICO: Esto imprimirá en los logs de Railway qué llave está usando
+    console.log("🔍 DIAGNÓSTICO DE LLAVE:");
+    console.log("El secreto que estoy usando empieza por:", integritySecret.substring(0, 15) + "...");
+    // 👆
+
+    // 2. CREAR CADENA (Solo una vez)
     const chain = `${reference}${priceInCents}${currency}${integritySecret}`;
+    
+    // 3. ENCRIPTAR
     const signature = crypto.createHash('sha256').update(chain).digest('hex');
 
     return {
