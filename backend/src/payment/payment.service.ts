@@ -3,6 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import * as crypto from 'crypto';
 import { PrismaService } from '../prisma.service';
 import { Resend } from 'resend';
+import * as bizSdk from 'facebook-nodejs-business-sdk';
 
 @Injectable()
 export class PaymentService {
@@ -158,4 +159,55 @@ private async sendWelcomeEmail(email: string) {
         console.error('❌ Error enviando correo:', error);
     }
 }
+
+private async sendFacebookEvent(transaction: any) {
+    try {
+        const accessToken = this.configService.get<string>('FACEBOOK_ACCESS_TOKEN');
+        const pixelId = this.configService.get<string>('FACEBOOK_PIXEL_ID');
+
+        if (!accessToken || !pixelId) {
+            console.warn("⚠️ Falta configurar Facebook CAPI en .env");
+            return;
+        }
+
+        const Content = bizSdk.Content;
+        const CustomData = bizSdk.CustomData;
+        const DeliveryCategory = bizSdk.DeliveryCategory;
+        const EventRequest = bizSdk.EventRequest;
+        const UserData = bizSdk.UserData;
+        const ServerEvent = bizSdk.ServerEvent;
+
+        const api = bizSdk.FacebookAdsApi.init(accessToken);
+
+        // Datos del Usuario (Facebook los hashea automáticamente por seguridad)
+        const userData = new UserData()
+            .setEmail(transaction.customer_email)
+            .setClientIpAddress(transaction.redirect_url ? '0.0.0.0' : undefined); // Wompi no siempre da la IP, esto es opcional
+
+        // Datos de la compra
+        const customData = new CustomData()
+            .setValue(transaction.amount_in_cents / 100) // Convertir a pesos (Wompi usa centavos)
+            .setCurrency('COP')
+            .setContentName('La Gaceta del Inglés (Preventa)');
+
+        const serverEvent = new ServerEvent()
+            .setEventName('Purchase')
+            .setEventTime(Math.floor(new Date().getTime() / 1000))
+            .setUserData(userData)
+            .setCustomData(customData)
+            .setEventSourceUrl('https://gacetaingles.com')
+            .setActionSource('website')
+            // ⚠️ CLAVE: Este ID debe ser igual al que mandamos en el Frontend para que Facebook sepa que es la misma venta
+            .setEventId(transaction.id); 
+
+        const eventsData = [serverEvent];
+        const eventRequest = new EventRequest(accessToken, pixelId).setEvents(eventsData);
+
+        await eventRequest.execute();
+        console.log("💙 Evento CAPI enviado a Facebook");
+
+    } catch (error) {
+        console.error("❌ Error enviando a Facebook CAPI:", error);
+    }
+  }
 }
