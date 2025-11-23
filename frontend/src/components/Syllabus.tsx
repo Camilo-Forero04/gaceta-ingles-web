@@ -1,4 +1,4 @@
-import { FaCheckCircle, FaRobot, FaMicrophoneAlt, FaBrain, FaGift, FaLock } from "react-icons/fa";
+import { FaCheckCircle, FaRobot, FaMicrophoneAlt, FaBrain, FaGift, FaLock, FaTelegramPlane} from "react-icons/fa";
 
 const modules = [
   {
@@ -61,49 +61,55 @@ export default function Syllabus() {
           ))}
         </div>
 
-        {/* --- EL BONUS "VIP / INCALCULABLE" --- */}
-        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-amber-50 to-orange-50 border border-orange-200 p-8 shadow-sm">
-          {/* Elemento decorativo de fondo */}
-          <div className="absolute top-0 right-0 -mt-4 -mr-4 w-32 h-32 bg-orange-400 rounded-full opacity-5 blur-3xl"></div>
-          
-          <div className="flex flex-col md:flex-row items-center justify-between gap-6 relative z-10">
-            
-            {/* Lado Izquierdo: Texto persuasivo */}
-            <div className="flex items-start gap-4">
-              <div className="flex-shrink-0 h-14 w-14 bg-orange-100 text-orange-600 rounded-xl flex items-center justify-center shadow-sm border border-orange-200 mt-1">
-                <FaGift size={26} />
-              </div>
-              <div className="text-center md:text-left">
-                <div className="flex items-center justify-center md:justify-start gap-2 mb-1">
-                    <span className="bg-orange-100 text-orange-800 text-[10px] font-bold px-2 py-0.5 rounded-full border border-orange-200 uppercase tracking-wider">
-                        Solo en Preventa
-                    </span>
-                </div>
-                <h3 className="text-xl font-extrabold text-gray-900">
-                  BONUS EXCLUSIVO: Lista de Prompts Secretos
-                </h3>
-                <p className="text-gray-600 mt-2 leading-relaxed max-w-xl">
-                  Acceso directo a la "Bóveda de Comandos" para convertir a ChatGPT en tu profesor nativo. 
-                  <span className="italic text-gray-500"> (Estos son los prompts que usamos internamente).</span>
-                </p>
-              </div>
-            </div>
+     
 
-            {/* Lado Derecho: La caja de "Incalculable" */}
-            <div className="flex-shrink-0">
-                <div className="bg-white/80 backdrop-blur-sm px-6 py-4 rounded-xl border-2 border-orange-100 shadow-sm flex flex-col items-center justify-center min-w-[180px]">
-                    <div className="text-orange-500 mb-2">
-                        <FaLock size={20} />
-                    </div>
-                    <p className="text-xs text-gray-400 uppercase tracking-widest font-bold mb-1">Disponibilidad</p>
-                    <p className="text-sm font-bold text-gray-800 text-center leading-tight">
-                        No disponible a la <br/> venta por separado
-                    </p>
-                </div>
-            </div>
-
-          </div>
+{/* --- EL BONUS "VIP / INCALCULABLE" --- */}
+<div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-amber-50 to-orange-50 border border-orange-200 p-8 shadow-sm">
+  {/* Elemento decorativo de fondo */}
+  <div className="absolute top-0 right-0 -mt-4 -mr-4 w-32 h-32 bg-orange-400 rounded-full opacity-5 blur-3xl"></div>
+  
+  <div className="flex flex-col md:flex-row items-center justify-between gap-6 relative z-10">
+    
+    {/* Lado Izquierdo: Texto persuasivo */}
+    <div className="flex items-start gap-4">
+      <div className="flex-shrink-0 h-14 w-14 bg-blue-100 text-blue-500 rounded-xl flex items-center justify-center shadow-sm border border-blue-200 mt-1">
+        {/* He cambiado el color del icono a azul suave para evocar Telegram, pero mantiene la armonía */}
+        <FaTelegramPlane size={28} />
+      </div>
+      <div className="text-center md:text-left">
+        <div className="flex items-center justify-center md:justify-start gap-2 mb-1">
+            <span className="bg-orange-100 text-orange-800 text-[10px] font-bold px-2 py-0.5 rounded-full border border-orange-200 uppercase tracking-wider">
+                Solo en Preventa
+            </span>
+            <span className="bg-green-100 text-green-700 text-[10px] font-bold px-2 py-0.5 rounded-full border border-green-200 uppercase tracking-wider">
+                Empieza Hoy Mismo
+            </span>
         </div>
+        <h3 className="text-xl font-extrabold text-gray-900 leading-tight">
+          BONUS VIP: Challenge de Speaking (20 Días)
+        </h3>
+        <p className="text-gray-600 mt-2 leading-relaxed max-w-xl text-sm md:text-base">
+          No esperes al libro. Acceso inmediato a nuestro <strong>Grupo Privado de Telegram</strong>. 
+          Recibe una misión diaria para <span className="italic text-gray-500">perder el miedo a hablar antes del lanzamiento.</span>
+        </p>
+      </div>
+    </div>
+
+    {/* Lado Derecho: La caja de "Incalculable" */}
+    <div className="flex-shrink-0">
+        <div className="bg-white/80 backdrop-blur-sm px-6 py-4 rounded-xl border-2 border-orange-100 shadow-sm flex flex-col items-center justify-center min-w-[180px]">
+            <div className="text-orange-500 mb-2">
+                <FaLock size={20} />
+            </div>
+            <p className="text-xs text-gray-400 uppercase tracking-widest font-bold mb-1">Valor Real</p>
+            <p className="text-sm font-bold text-gray-800 text-center leading-tight">
+                Incalculable <br/> (Acceso Cerrado)
+            </p>
+        </div>
+    </div>
+
+  </div>
+</div>
 
       </div>
     </section>
