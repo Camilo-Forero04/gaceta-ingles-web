@@ -2,35 +2,33 @@
 
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { Suspense, useEffect } from "react"; 
-
-declare global {
-  interface Window {
-    fbq: any;
-  }
-}
+import { Suspense, useEffect } from "react";
 
 // Sub-componente para leer la URL de forma segura
 function GraciasContent() {
   const searchParams = useSearchParams();
   const transactionId = searchParams.get("id");
 
-  // 🟢 AGREGADO: Disparar evento de compra en Facebook
-// 🟢 CORREGIDO: Disparar evento usando el objeto global fbq
+  // 🟢 CORRECCIÓN: Usamos la librería, no window.fbq directo
   useEffect(() => {
     if (transactionId) {
-      // Verificamos que el objeto fbq de Facebook exista
-      if (typeof window !== 'undefined' && window.fbq) {
-        window.fbq("track", "Purchase", {
+      import("react-facebook-pixel")
+        .then((module) => {
+          const ReactPixel = module.default;
+          
+          // Init opcional por seguridad (aunque el wrapper ya lo hace)
+          // ReactPixel.init("TU_PIXEL_ID"); 
+          
+          ReactPixel.track("Purchase", {
             currency: "COP",
             value: 26700, 
             content_name: "La Gaceta del Inglés (Preventa)",
             order_id: transactionId 
-        });
-        console.log("Evento Purchase enviado correctamente para ID:", transactionId);
-      } else {
-        console.warn("Facebook Pixel no detectado en window.fbq");
-      }
+          });
+          
+          console.log("✅ Evento Purchase enviado vía librería para:", transactionId);
+        })
+        .catch((error) => console.error("Error cargando Pixel:", error));
     }
   }, [transactionId]);
 
@@ -102,7 +100,7 @@ function GraciasContent() {
   );
 }
 
-// Componente Principal (Loader mientras lee la URL)
+// Componente Principal
 export default function GraciasPage() {
   return (
     <Suspense fallback={<div className="text-center p-20">Verificando pago...</div>}>
