@@ -4,25 +4,33 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Suspense, useEffect } from "react"; 
 
+declare global {
+  interface Window {
+    fbq: any;
+  }
+}
+
 // Sub-componente para leer la URL de forma segura
 function GraciasContent() {
   const searchParams = useSearchParams();
   const transactionId = searchParams.get("id");
 
   // 🟢 AGREGADO: Disparar evento de compra en Facebook
+// 🟢 CORREGIDO: Disparar evento usando el objeto global fbq
   useEffect(() => {
     if (transactionId) {
-      // Usamos import dinámico para evitar errores de window
-      import("react-facebook-pixel")
-        .then((x) => x.default)
-        .then((ReactPixel) => {
-          ReactPixel.track("Purchase", {
+      // Verificamos que el objeto fbq de Facebook exista
+      if (typeof window !== 'undefined' && window.fbq) {
+        window.fbq("track", "Purchase", {
             currency: "COP",
             value: 26700, 
             content_name: "La Gaceta del Inglés (Preventa)",
-            order_id: transactionId // ID único para evitar duplicados en FB
-          });
+            order_id: transactionId 
         });
+        console.log("Evento Purchase enviado correctamente para ID:", transactionId);
+      } else {
+        console.warn("Facebook Pixel no detectado en window.fbq");
+      }
     }
   }, [transactionId]);
 
