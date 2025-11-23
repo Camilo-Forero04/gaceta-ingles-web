@@ -2,16 +2,31 @@
 
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { Suspense } from "react";   
-import { useEffect } from "react";
+import { Suspense, useEffect } from "react"; 
 
 // Sub-componente para leer la URL de forma segura
 function GraciasContent() {
   const searchParams = useSearchParams();
   const transactionId = searchParams.get("id");
 
+  // 🟢 AGREGADO: Disparar evento de compra en Facebook
+  useEffect(() => {
+    if (transactionId) {
+      // Usamos import dinámico para evitar errores de window
+      import("react-facebook-pixel")
+        .then((x) => x.default)
+        .then((ReactPixel) => {
+          ReactPixel.track("Purchase", {
+            currency: "COP",
+            value: 26700, 
+            content_name: "La Gaceta del Inglés (Preventa)",
+            order_id: transactionId // ID único para evitar duplicados en FB
+          });
+        });
+    }
+  }, [transactionId]);
+
   return (
-    // 1. Quitamos 'min-h-screen' y usamos 'py-20' para dar buen espacio
     <div className="bg-gray-50 flex flex-col items-center justify-center py-20 px-4 sm:px-6 lg:px-8 h-full">
       <div className="w-full max-w-md bg-white py-8 px-6 shadow-xl rounded-2xl text-center border border-gray-100">
         
@@ -45,7 +60,6 @@ function GraciasContent() {
             </p>
           </div>
 
-          {/* AQUÍ ESTÁ EL ARREGLO DE LA FECHA */}
           <div className="flex items-start gap-3 bg-indigo-50 p-3 rounded-lg border border-indigo-100">
             <div className="mt-0.5">
                <span className="text-lg">📅</span>
