@@ -23,7 +23,7 @@ export default function PresaleHero() {
   const PRECIO_FULL = 49000;
   const PRECIO_PREVENTA = 26700;
   const AHORRO = Math.round(((PRECIO_FULL - PRECIO_PREVENTA) / PRECIO_FULL) * 100);
-  const TARGET_DATE = "2025-12-15T00:00:00"; 
+  const TARGET_DATE = "2025-12-01T23:59:59"; 
 
   useEffect(() => {
     setIsMounted(true);

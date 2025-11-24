@@ -111,7 +111,7 @@ export class PaymentService {
                   
                   <div style="background-color: #fffbeb; border-left: 5px solid #f59e0b; padding: 20px; margin: 25px 0; border-radius: 4px;">
                       <p style="margin: 0; font-weight: bold; color: #92400e; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;">PERO NO VAMOS A ESPERAR HASTA EL LANZAMIENTO...</p>
-                      <p style="margin: 8px 0 0 0; font-size: 16px; color: #78350f;">El libro llega el 15 de diciembre, pero tu fluidez empieza <strong>HOY mismo</strong>.</p>
+                      <p style="margin: 8px 0 0 0; font-size: 16px; color: #78350f;">El libro llega el 2 de diciembre, pero tu fluidez empieza <strong>HOY mismo</strong>.</p>
                   </div>
 
                   <p style="font-size: 16px;">Como parte de tu bonus exclusivo, tienes acceso inmediato a nuestro <strong>Grupo VIP de Telegram</strong> para el Speaking Challenge de 20 días.</p>

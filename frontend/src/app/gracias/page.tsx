@@ -71,7 +71,7 @@ function GraciasContent() {
                <span className="text-lg">📅</span>
             </div>
             <div className="text-sm text-gray-700">
-              El <span className="font-bold text-indigo-700 bg-indigo-100 px-2 py-0.5 rounded mx-1">15 de Diciembre</span> 
+              El <span className="font-bold text-indigo-700 bg-indigo-100 px-2 py-0.5 rounded mx-1">1 de Diciembre</span> 
               recibirás el eBook automáticamente en tu correo.
             </div>
           </div>
