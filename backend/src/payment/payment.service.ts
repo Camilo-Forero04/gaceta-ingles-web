@@ -15,23 +15,20 @@ export class PaymentService {
   ) {
     this.resend = new Resend(this.configService.get<string>('RESEND_API_KEY'));
   }
-public getPresaleSignature() {
+
+  public getPresaleSignature() {
     const currency = 'COP';
     const priceInCents = 2670000; 
-    // Referencia única cada vez
     const reference = `GACETA-${Date.now()}`; 
 
-    // ✅ VOLVEMOS A LA FORMA SEGURA (Leyendo de Railway)
     const integritySecret = this.configService.get<string>('WOMPI_INTEGRITY_SECRET');
     const publicKey = this.configService.get<string>('WOMPI_PUB_KEY');
 
-    // Validación para que el servidor avise si faltan las variables
     if (!integritySecret || !publicKey) {
-      console.error("❌ ERROR: No se encontraron las llaves de Wompi en las variables de entorno.");
-      throw new Error('Faltan las llaves de Wompi en el .env');
+      console.error("❌ ERROR: Faltan llaves de Wompi");
+      throw new Error('Faltan llaves de Wompi');
     }
 
-    // Limpieza de seguridad (por si Railway tiene espacios)
     const cleanSecret = integritySecret.trim();
     const cleanPublic = publicKey.trim();
 
@@ -52,7 +49,6 @@ public getPresaleSignature() {
 
     if (!transaction) return { status: 'Ignored (No data)' };
 
-    // 4. VALIDACIÓN REAL
     if (transaction.status === 'APPROVED') {
         console.log(`💰 VENTA REAL Aprobada: ${transaction.customer_email}`);
         
@@ -62,6 +58,7 @@ public getPresaleSignature() {
             });
 
             if (!existingOrder) {
+                // A. Guardar en Base de Datos
                 await this.prisma.order.create({
                     data: {
                         customerEmail: transaction.customer_email,
@@ -72,9 +69,13 @@ public getPresaleSignature() {
                         isDelivered: false,
                     },
                 });
-                
-                // Enviar Correo
-                await this.sendWelcomeEmail(transaction.customer_email);
+                console.log('💾 Orden guardada en Supabase');
+
+                // B. Ejecutar acciones secundarias (Correo + Facebook) en paralelo
+                await Promise.all([
+                    this.sendWelcomeEmail(transaction.customer_email),
+                    this.sendFacebookEvent(transaction)
+                ]);
             }
             return { success: true };
 
@@ -86,7 +87,8 @@ public getPresaleSignature() {
     return { status: 'Ignored (Not Approved)' };
   }
 
-private async sendWelcomeEmail(email: string) {
+  // --- FUNCIÓN DE CORREO (HTML MEJORADO) ---
+  private async sendWelcomeEmail(email: string) {
     try {
         await this.resend.emails.send({
             from: 'La Gaceta del Inglés <info@gacetaingles.com>',
@@ -97,9 +99,8 @@ private async sendWelcomeEmail(email: string) {
               <!DOCTYPE html>
               <html lang="es">
               <body style="margin: 0; padding: 0; background-color: #f9fafb; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;">
-                
                 <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; padding: 40px 20px; border-radius: 8px; color: #1f2937; line-height: 1.6;">
-                
+                  
                   <div style="text-align: center; margin-bottom: 30px;">
                       <h1 style="color: #4F46E5; margin: 0; font-size: 28px; font-weight: 800;">¡Pago Exitoso! 🚀</h1>
                       <p style="color: #6b7280; font-size: 14px; margin-top: 5px;">Confirmación de orden #PREVENTA</p>
@@ -148,7 +149,6 @@ private async sendWelcomeEmail(email: string) {
                   <div style="margin-top: 50px; padding-top: 20px; border-top: 1px solid #e5e7eb; text-align: center; font-size: 12px; color: #9ca3af;">
                       © 2025 La Gaceta del Inglés. Todos los derechos reservados.<br>Hecho con ❤️ en Colombia.
                   </div>
-
                 </div>
               </body>
               </html>
@@ -158,9 +158,10 @@ private async sendWelcomeEmail(email: string) {
     } catch (error) {
         console.error('❌ Error enviando correo:', error);
     }
-}
+  }
 
-private async sendFacebookEvent(transaction: any) {
+  // --- FUNCIÓN DE FACEBOOK CAPI ---
+  private async sendFacebookEvent(transaction: any) {
     try {
         const accessToken = this.configService.get<string>('FACEBOOK_ACCESS_TOKEN');
         const pixelId = this.configService.get<string>('FACEBOOK_PIXEL_ID');
@@ -172,21 +173,18 @@ private async sendFacebookEvent(transaction: any) {
 
         const Content = bizSdk.Content;
         const CustomData = bizSdk.CustomData;
-        const DeliveryCategory = bizSdk.DeliveryCategory;
         const EventRequest = bizSdk.EventRequest;
         const UserData = bizSdk.UserData;
         const ServerEvent = bizSdk.ServerEvent;
 
-        const api = bizSdk.FacebookAdsApi.init(accessToken);
+        bizSdk.FacebookAdsApi.init(accessToken);
 
-        // Datos del Usuario (Facebook los hashea automáticamente por seguridad)
         const userData = new UserData()
             .setEmail(transaction.customer_email)
-            .setClientIpAddress(transaction.redirect_url ? '0.0.0.0' : undefined); // Wompi no siempre da la IP, esto es opcional
+            .setClientIpAddress(transaction.redirect_url ? '0.0.0.0' : undefined);
 
-        // Datos de la compra
         const customData = new CustomData()
-            .setValue(transaction.amount_in_cents / 100) // Convertir a pesos (Wompi usa centavos)
+            .setValue(transaction.amount_in_cents / 100)
             .setCurrency('COP')
             .setContentName('La Gaceta del Inglés (Preventa)');
 
@@ -197,12 +195,9 @@ private async sendFacebookEvent(transaction: any) {
             .setCustomData(customData)
             .setEventSourceUrl('https://gacetaingles.com')
             .setActionSource('website')
-            // ⚠️ CLAVE: Este ID debe ser igual al que mandamos en el Frontend para que Facebook sepa que es la misma venta
             .setEventId(transaction.id); 
 
-        const eventsData = [serverEvent];
-        const eventRequest = new EventRequest(accessToken, pixelId).setEvents(eventsData);
-
+        const eventRequest = new EventRequest(accessToken, pixelId).setEvents([serverEvent]);
         await eventRequest.execute();
         console.log("💙 Evento CAPI enviado a Facebook");
 
