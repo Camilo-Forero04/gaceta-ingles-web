@@ -1,128 +1,80 @@
 "use client";
 
-import React, { useRef, useState, useEffect } from "react";
+import React, { useRef, Suspense } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
-import { useTexture, Environment, Float, ContactShadows, Html } from "@react-three/drei";
+import { useTexture, Environment, Float, ContactShadows, Preload } from "@react-three/drei";
 import * as THREE from "three";
 
-// Pre-cargamos la textura para que esté lista antes del render
+// 1. PRECARGA: Esto le dice al navegador que descargue la imagen antes de renderizar el 3D.
+// Asegúrate de que la imagen pese poco (idealmente < 100kb y en formato WebP o JPG optimizado).
 useTexture.preload("/book_cover_texture.avif?v=2");
 
 function BookModel() {
   const meshRef = useRef<THREE.Mesh>(null);
-  // Estado para la animación de entrada
-  const [mounted, setMounted] = useState(false);
-
-  // Textura
-  const coverTexture = useTexture("/book_cover_texture.avif?v=2");
-  coverTexture.center.set(0.5, 0.5); // Centrar textura por si acaso
   
-  // Colores reutilizables (mejora memoria)
+  const coverTexture = useTexture("/book_cover_texture.jpg?v=2"); 
+  coverTexture.center.set(0.5, 0.5); 
+  
   const bookPaperColor = new THREE.Color("#FDFBF7");
-  const whiteColor = new THREE.Color("#ffffff");
 
-  // Activar animación de entrada al montar
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  useFrame((state, delta) => {
+  useFrame((state) => {
     const t = state.clock.getElapsedTime();
-
     if (meshRef.current) {
-        // 1. Animación de "Idle" (flotando y rotando)
         meshRef.current.rotation.y = Math.sin(t / 4) * 0.3;
         meshRef.current.rotation.x = Math.cos(t / 3) * 0.05;
-
-        // 2. Animación de ENTRADA "Bonita" (Lerp)
-        // Si está montado, la escala va hacia 1. Si no, es 0.
-        // El '4 * delta' controla la velocidad del efecto "pop"
-        const targetScale = mounted ? 1 : 0;
-        meshRef.current.scale.lerp(new THREE.Vector3(targetScale, targetScale, targetScale), 4 * delta);
     }
   });
 
   return (
-    <Float 
-      speed={2.5}         // Un poco más rápido para que se sienta vivo
-      rotationIntensity={0.4} 
-      floatIntensity={0.5} 
-      floatingRange={[-0.05, 0.05]}
-    >
-      {/* Iniciamos con escala 0 para que el useFrame haga el efecto de crecer */}
-      <mesh ref={meshRef} castShadow receiveShadow rotation={[0, -0.3, 0]} scale={[0,0,0]}> 
-        <boxGeometry args={[3.2, 5, 0.2]} />
+    <Float speed={2} rotationIntensity={0.5} floatIntensity={0.6} floatingRange={[-0.05, 0.05]}>
+      <mesh ref={meshRef} castShadow receiveShadow rotation={[0, -0.3, 0]}>
+        <boxGeometry args={[3.2, 5, 0.2]} /> 
         
-        {/* Materiales optimizados */}
-        {/* Bordes/Papel */}
-        <meshStandardMaterial attach="material-0" color="#EEECE5" roughness={0.9} />
+        {/* Materiales */}
+        <meshStandardMaterial attach="material-0" color={"#EEECE5"} roughness={0.9} />
         <meshStandardMaterial attach="material-1" color={bookPaperColor} roughness={0.6} />
         <meshStandardMaterial attach="material-2" color={bookPaperColor} roughness={0.9} />
         <meshStandardMaterial attach="material-3" color={bookPaperColor} roughness={0.9} />
-        
-        {/* Portada */}
-        <meshStandardMaterial
-            attach="material-4"
-            map={coverTexture}
-            color={whiteColor}
-            roughness={0.8}       // Mate elegante
-            metalness={0.1}       // Un toque mínimo de metalicidad ayuda a captar mejor la luz
-            envMapIntensity={0.8} // Aumentado ligeramente para resaltar colores
+        <meshStandardMaterial 
+            attach="material-4" 
+            map={coverTexture} 
+            color="#ffffff"
+            roughness={0.8}
+            metalness={0.0}
+            envMapIntensity={0.5}
         />
-        
-        {/* Contraportada */}
         <meshStandardMaterial attach="material-5" color={bookPaperColor} roughness={0.6} />
       </mesh>
     </Float>
   );
 }
 
-// Loader simple mientras carga la textura interna (opcional, pero buena práctica)
+// 2. LOADER SILENCIOSO: Un componente simple para mostrar mientras carga
 function Loader() {
-  return (
-    <Html center>
-      <div className="w-2 h-2 bg-indigo-500 rounded-full animate-ping"></div>
-    </Html>
-  )
+  // Puedes retornar null para que sea invisible, o un spinner pequeño.
+  // Si retornas null, simplemente no se verá nada hasta que el libro esté listo (sin errores feos).
+  return null; 
 }
 
 export default function Book3DScene() {
   return (
-    <div className="h-full w-full flex items-center justify-center pointer-events-none fade-in-element">
-      <Canvas 
-        shadows 
-        dpr={[1, 2]} // 🔥 CRÍTICO: Limita pixel ratio a 2x para móviles (evita sobrecalentamiento)
-        camera={{ position: [0, 0, 9], fov: 40 }}
-        gl={{ preserveDrawingBuffer: true, antialias: true }} // Suavizado de bordes
-      >
+    <div className="h-full w-full flex items-center justify-center pointer-events-none">
+      <Canvas shadows camera={{ position: [0, 0, 9], fov: 40 }}>
         
-        {/* Iluminación mejorada para resaltar el libro */}
-        <ambientLight intensity={0.7} />
-        <spotLight 
-            position={[10, 15, 10]} 
-            angle={0.4} 
-            penumbra={1} 
-            intensity={1.2} 
-            castShadow 
-            shadow-bias={-0.0001} // Evita artefactos en la sombra
-        />
-        {/* Luz de contra (Rim light) para separar el libro del fondo */}
-        <spotLight position={[-5, 5, -5]} intensity={0.5} color="#e0e7ff" />
+        <ambientLight intensity={0.6} /> 
+        <spotLight position={[10, 15, 10]} angle={0.3} penumbra={1} intensity={1.5} castShadow />
+        <pointLight position={[-10, -10, -10]} intensity={0.5} />
+        
+        {/* 3. SUSPENSE: Envuelve el modelo. Si la textura no ha cargado, muestra el fallback */}
+        <Suspense fallback={<Loader />}>
+          <BookModel />
+        </Suspense>
 
-        <React.Suspense fallback={<Loader />}>
-            <BookModel />
-            <Environment preset="city" />
-        </React.Suspense>
-
-        {/* Sombras de contacto más suaves */}
-        <ContactShadows 
-            position={[0, -2.8, 0]} 
-            opacity={0.35} 
-            scale={12} 
-            blur={2.8} 
-            far={5} 
-            resolution={256} // Baja resolución para mejor performance (suficiente para sombra difusa)
-        />
+        <Environment preset="city" />
+        <ContactShadows position={[0, -2.8, 0]} opacity={0.4} scale={10} blur={2.5} far={4.5} />
+        
+        {/* 4. PRELOAD ALL: Fuerza la compilación de shaders y texturas invisiblemente */}
+        <Preload all />
       </Canvas>
     </div>
   );
