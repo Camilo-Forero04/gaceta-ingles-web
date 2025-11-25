@@ -6,7 +6,7 @@ import dynamic from "next/dynamic";
 
 // Import dinámico del libro. 
 // NOTA: No definimos 'loading' aquí para controlar la carga manualmente en el componente padre y reducir TBT.
-const Book3DScene = dynamic(() => import("./Book3DScene"), { 
+const Book3DScene = dynamic(() => import("../Book3DScene"), { 
   ssr: false,
 });
 
