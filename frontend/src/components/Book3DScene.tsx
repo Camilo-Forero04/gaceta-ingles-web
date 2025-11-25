@@ -1,21 +1,20 @@
 "use client";
 
-import React, { useRef, Suspense } from "react";
+import React, { useRef } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
-import { useTexture, Environment, Float, ContactShadows, Preload } from "@react-three/drei";
-import * as THREE from "three";
-
-// 1. PRECARGA: Esto le dice al navegador que descargue la imagen antes de renderizar el 3D.
-// Asegúrate de que la imagen pese poco (idealmente < 100kb y en formato WebP o JPG optimizado).
-useTexture.preload("/book_cover_texture.avif?v=2");
+import { useTexture, Environment, Float, ContactShadows } from "@react-three/drei";
+// 👇 CAMBIO CLAVE: Ya no importamos todo (*), solo lo que usamos (Color, Mesh)
+import { Color, type Mesh } from "three";
 
 function BookModel() {
-  const meshRef = useRef<THREE.Mesh>(null);
+  // Usamos el tipo específico 'Mesh' en lugar de 'THREE.Mesh'
+  const meshRef = useRef<Mesh>(null);
   
-  const coverTexture = useTexture("/book_cover_texture.avif?v=2"); 
+  const coverTexture = useTexture("/book_cover_texture.jpg?v=2"); 
   coverTexture.center.set(0.5, 0.5); 
   
-  const bookPaperColor = new THREE.Color("#FDFBF7");
+  // Usamos 'new Color' directo, sin el prefijo THREE.
+  const bookPaperColor = new Color("#FDFBF7");
 
   useFrame((state) => {
     const t = state.clock.getElapsedTime();
@@ -30,51 +29,41 @@ function BookModel() {
       <mesh ref={meshRef} castShadow receiveShadow rotation={[0, -0.3, 0]}>
         <boxGeometry args={[3.2, 5, 0.2]} /> 
         
-        {/* Materiales */}
         <meshStandardMaterial attach="material-0" color={"#EEECE5"} roughness={0.9} />
         <meshStandardMaterial attach="material-1" color={bookPaperColor} roughness={0.6} />
         <meshStandardMaterial attach="material-2" color={bookPaperColor} roughness={0.9} />
         <meshStandardMaterial attach="material-3" color={bookPaperColor} roughness={0.9} />
+        
         <meshStandardMaterial 
             attach="material-4" 
             map={coverTexture} 
-            color="#ffffff"
-            roughness={0.8}
-            metalness={0.0}
-            envMapIntensity={0.5}
+            color="#fafafa" 
+            roughness={0.5} 
+            metalness={0.0} 
+            envMapIntensity={0.8} 
         />
+        
         <meshStandardMaterial attach="material-5" color={bookPaperColor} roughness={0.6} />
       </mesh>
     </Float>
   );
 }
 
-// 2. LOADER SILENCIOSO: Un componente simple para mostrar mientras carga
-function Loader() {
-  // Puedes retornar null para que sea invisible, o un spinner pequeño.
-  // Si retornas null, simplemente no se verá nada hasta que el libro esté listo (sin errores feos).
-  return null; 
-}
-
 export default function Book3DScene() {
   return (
-    <div className="h-full w-full flex items-center justify-center pointer-events-none">
-      <Canvas shadows camera={{ position: [0, 0, 9], fov: 40 }}>
+    <div className="h-full w-full flex items-center justify-center cursor-grab active:cursor-grabbing touch-none">
+      {/* Mantenemos el dpr bajo para rendimiento en móviles */}
+      <Canvas shadows dpr={[1, 2]} camera={{ position: [0, 0, 10], fov: 35 }}>
         
-        <ambientLight intensity={0.6} /> 
-        <spotLight position={[10, 15, 10]} angle={0.3} penumbra={1} intensity={1.5} castShadow />
+        <ambientLight intensity={0.4} /> 
+        <spotLight position={[10, 15, 10]} angle={0.3} penumbra={1} intensity={1.0} castShadow />
         <pointLight position={[-10, -10, -10]} intensity={0.5} />
         
-        {/* 3. SUSPENSE: Envuelve el modelo. Si la textura no ha cargado, muestra el fallback */}
-        <Suspense fallback={<Loader />}>
-          <BookModel />
-        </Suspense>
-
+        <BookModel />
         <Environment preset="city" />
-        <ContactShadows position={[0, -2.8, 0]} opacity={0.4} scale={10} blur={2.5} far={4.5} />
         
-        {/* 4. PRELOAD ALL: Fuerza la compilación de shaders y texturas invisiblemente */}
-        <Preload all />
+        {/* Mantenemos la optimización de frames=1 */}
+        <ContactShadows position={[0, -2.8, 0]} opacity={0.4} scale={10} blur={2.5} far={4.5} resolution={256} frames={1} />
       </Canvas>
     </div>
   );
