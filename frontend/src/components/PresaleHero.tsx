@@ -182,18 +182,11 @@ export default function PresaleHero() {
            después de 2.5 segundos. 
         */}
 
-        {load3D && (
            <div className="absolute inset-0 w-full h-full animate-fade-in">
               <Book3DScene />
            </div>
-        )}
         
-        {/* Indicador de carga sutil mientras llega el 3D real */}
-        {!load3D && (
-             <div className="absolute bottom-4 right-4">
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-indigo-600"></div>
-             </div>
-        )}
+      
 
       </div>
 
