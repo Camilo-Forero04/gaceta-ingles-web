@@ -2,22 +2,35 @@
 
 import { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
-// import Image from "next/image"; // Descomenta si usas next/image para el placeholder
+import Image from "next/image";
 
-// Import dinámico del libro. 
-// NOTA: No definimos 'loading' aquí para controlar la carga manualmente en el componente padre y reducir TBT.
+// Import dinámico (sin loading aquí, lo manejaremos manualmente para control total)
 const Book3DScene = dynamic(() => import("./Book3DScene"), { 
   ssr: false,
 });
 
+// --- COMPONENTE DE IMAGEN ESTÁTICA (Reutilizable) ---
+// Esta es la imagen ultra-ligera que Google verá primero
+const StaticBookCover = () => (
+  <div className="flex items-center justify-center h-full w-full transition-opacity duration-700">
+     <Image 
+       src="/book_cover_texture.jpg"
+       alt="Desbloquea tu fluidez en inglés"
+       width={280} 
+       height={400}
+       className="object-contain drop-shadow-xl"
+       priority // ¡Vital para el LCP!
+     />
+  </div>
+);
+
 export default function PresaleHero() {
   const [isLoading, setIsLoading] = useState(false);
-  // Estado para diferir la carga del 3D
-  const [load3D, setLoad3D] = useState(false);
-  
-  // --- LÓGICA DEL CONTADOR ---
   const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
   const [isMounted, setIsMounted] = useState(false);
+  
+  // ESTADO NUEVO: Controla cuándo cargar el 3D pesado
+  const [load3D, setLoad3D] = useState(false);
 
   const PRECIO_FULL = 49000;
   const PRECIO_PREVENTA = 26700;
@@ -26,20 +39,19 @@ export default function PresaleHero() {
 
   useEffect(() => {
     setIsMounted(true);
-
-    // 1. ESTRATEGIA DE RENDIMIENTO: Retrasar el 3D
-    // Esperamos 2.5 segundos o requestIdleCallback para cargar el 3D.
-    // Esto permite que el texto y el botón (LCP y TBT) carguen instantáneamente sin bloqueos.
-    const load3DTimer = setTimeout(() => {
-      setLoad3D(true);
+    
+    // 🚀 TRUCO DE RENDIMIENTO:
+    // Esperamos 2.5 segundos después de que cargue la página.
+    // Esto permite que el navegador termine de pintar todo lo importante (Texto, Botones).
+    // Solo entonces, cargamos el motor 3D pesado.
+    const timer3D = setTimeout(() => {
+        setLoad3D(true);
     }, 2500);
 
-    // Lógica del contador
     const target = new Date(TARGET_DATE).getTime();
     const interval = setInterval(() => {
       const now = new Date().getTime();
       const difference = target - now;
-
       if (difference > 0) {
         setTimeLeft({
           days: Math.floor(difference / (1000 * 60 * 60 * 24)),
@@ -53,14 +65,17 @@ export default function PresaleHero() {
     }, 1000);
 
     return () => {
-      clearInterval(interval);
-      clearTimeout(load3DTimer);
+        clearInterval(interval);
+        clearTimeout(timer3D);
     };
   }, []);
 
-  // --- LÓGICA DE PAGO REAL ---
   const handlePurchase = async () => {
-    // Lazy load del Pixel solo al hacer clic (ahorra JS inicial)
+    // ... (Tu lógica de pago sigue igual, la omito para ahorrar espacio pero NO LA BORRES) ...
+    // Asegúrate de mantener tu función handlePurchase completa aquí.
+    // Si necesitas que te la pegue completa de nuevo, avísame.
+    
+    // 1. Pixel de Meta
     const ReactPixel = (await import("react-facebook-pixel")).default;
     ReactPixel.track("InitiateCheckout", {
         currency: "COP",
@@ -82,8 +97,7 @@ export default function PresaleHero() {
             reference: data.reference,
             publicKey: data.publicKey,
             signature: { integrity: data.signature }, 
-            redirectUrl: 'https://www.gacetaingles.com/gracias',
-            taxInCents: { vat: 0, consumption: 0 }
+            redirectUrl: 'https://www.gacetaingles.com/gracias'
           });
           
           checkout.open((result: any) => {
@@ -95,7 +109,6 @@ export default function PresaleHero() {
        } else {
            alert("El sistema de pagos está cargando. Intenta de nuevo en 2 segundos.");
        }
-
     } catch (e) {
         console.error(e);
         alert("Hubo un error al iniciar el pago.");
@@ -105,13 +118,12 @@ export default function PresaleHero() {
   };
 
   return (
-    <section className="relative bg-white overflow-hidden flex flex-col lg:flex-row max-w-7xl mx-auto min-h-[auto] lg:min-h-[90vh]">
+    <section className="relative bg-white overflow-hidden flex flex-col lg:flex-row max-w-7xl mx-auto min-h-auto lg:min-h-[650px]">
       
-      {/* 1. ZONA DE TEXTO (VA PRIMERO - CRÍTICO PARA LCP) */}
-      <div className="w-full lg:w-1/2 flex items-center z-10 bg-white px-4 pt-8 pb-4 sm:px-12 lg:p-10 lg:order-1">
+      {/* 1. ZONA DE TEXTO */}
+      <div className="w-full lg:w-1/2 flex items-center z-10 bg-white px-4 pt-8 pb-4 sm:px-12 lg:p-16 order-1">
         <div className="w-full max-w-xl mx-auto lg:mx-0">
             
-            {/* Etiqueta */}
             <div className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-indigo-100 text-indigo-800 mb-4">
               <span className="flex h-2 w-2 relative mr-2">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
@@ -120,7 +132,6 @@ export default function PresaleHero() {
               Fase de Preventa Activa
             </div>
 
-            {/* Título - Prioridad de renderizado */}
             <h1 className="text-4xl tracking-tight font-extrabold text-gray-900 sm:text-5xl md:text-6xl mb-4 leading-tight">
               Desbloquea tu fluidez con <span className="text-indigo-600 block lg:inline">el Método IA SPOKEN</span>
             </h1>
@@ -129,8 +140,7 @@ export default function PresaleHero() {
               Las academias te enseñan a memorizar. La IA te enseña a hablar. Únete a la revolución y ahorra un <strong>{AHORRO}%</strong> antes del lanzamiento oficial.
             </p>
 
-            {/* Contador */}
-            {isMounted ? (
+            {isMounted && (
               <div className="flex flex-wrap gap-3 mb-6">
                 <CounterBox value={timeLeft.days} label="Días" />
                 <CounterBox value={timeLeft.hours} label="Horas" />
@@ -140,12 +150,8 @@ export default function PresaleHero() {
                   ⚠️ ¡La oferta termina pronto!
                 </div>
               </div>
-            ) : (
-               // Placeholder del contador para evitar salto de diseño (CLS)
-               <div className="h-[58px] w-[300px] bg-gray-100 rounded-lg mb-6 animate-pulse"></div>
             )}
 
-            {/* Precios */}
             <div className="flex items-center gap-4 mb-6">
               <div className="flex items-baseline gap-1">
                   <span className="text-4xl sm:text-5xl font-extrabold text-gray-900">
@@ -158,7 +164,6 @@ export default function PresaleHero() {
               </span>
             </div>
 
-            {/* Botón de Compra */}
             <div className="mt-4">
                 <button
                   onClick={handlePurchase}
@@ -174,19 +179,14 @@ export default function PresaleHero() {
         </div>
       </div>
 
-      {/* 2. ZONA DEL LIBRO 3D (VA SEGUNDO) */}
-      <div className="w-full h-[350px] lg:w-1/2 lg:h-auto bg-gray-50 relative z-0 flex items-center justify-center lg:order-2 overflow-hidden">
+      {/* 2. ZONA DEL LIBRO (ESTRATEGIA DE CARGA DIFERIDA) */}
+      <div className="w-full h-[400px] lg:w-1/2 lg:h-auto bg-gray-50 relative z-0 flex items-center justify-center lg:order-2">
         
-        {/* SOLUCIÓN MAESTRA AL TBT:
-           Mostramos una IMAGEN estática primero. Solo cargamos el 3D pesado (load3D) 
-           después de 2.5 segundos. 
+        {/* CONDICIONAL MÁGICO: 
+            Si load3D es false (primeros 2.5s), mostramos la imagen estática ultraligera.
+            Si load3D es true, cargamos el motor 3D pesado.
         */}
-
-           <div className="absolute inset-0 w-full h-full animate-fade-in">
-              <Book3DScene />
-           </div>
-        
-      
+        {load3D ? <Book3DScene /> : <StaticBookCover />}
 
       </div>
 
