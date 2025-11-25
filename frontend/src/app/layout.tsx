@@ -2,13 +2,17 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import Script from "next/script";
 import "./globals.css";
-// IMPORTAMOS EL WRAPPER, NO EL PIXEL DIRECTO NI EL DYNAMIC AQUÍ
 import PixelWrapper from "../components/PixelWrapper"; 
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import WhatsAppButton from "../components/WhatsAppButton";
 
-const inter = Inter({ subsets: ["latin"] });
+// Optimización de fuente: swap para que el texto se vea de inmediato
+const inter = Inter({ 
+  subsets: ["latin"],
+  display: 'swap', 
+  preload: true
+});
 
 export const metadata: Metadata = {
   title: "La Gaceta del Inglés - Preventa",
@@ -22,14 +26,26 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="es">
-      <body className={inter.className}>
-        {/* Usamos el componente intermediario seguro */}
+      <head>
+        {/* 🚀 OPTIMIZACIÓN DE VELOCIDAD: Abrir túnel con Wompi antes de tiempo */}
+        <link rel="preconnect" href="https://checkout.wompi.co" />
+        <link rel="dns-prefetch" href="https://checkout.wompi.co" />
+      </head>
+
+      {/* Estructura Flex para que el Footer siempre esté abajo */}
+      <body className={`${inter.className} flex flex-col min-h-screen`}>
         <PixelWrapper />
+        
         <Navbar />
         
-        {children}
+        {/* pt-16: Espacio para que la barra de navegación no tape el título */}
+        {/* flex-grow: Empuja el footer hacia abajo */}
+        <main className="flex-grow pt-16">
+          {children}
+        </main>
 
         <Footer />
+        
         <WhatsAppButton />
         
         <Script 

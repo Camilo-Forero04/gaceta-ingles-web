@@ -85,7 +85,7 @@ export default function Navbar() {
           <div className="flex-shrink-0 flex items-center">
             <Link href="/">
               <Image 
-                src="/logo-gaceta.png" 
+                src="/logo-gaceta.avif" 
                 alt="Logo La Gaceta del Inglés" 
                 width={150} 
                 height={40} 

@@ -11,7 +11,7 @@ export default function Footer() {
         <div className="mb-8">
           <Link href="/" className="flex items-center gap-2 group">
             <Image 
-              src="/logo-gaceta-blanco.png" 
+              src="/logo-gaceta-blanco.avif" 
               alt="Logo La Gaceta del Inglés" 
               width={50}  // Ajusta este ancho si es necesario
               height={22}  // Ajusta este alto si es necesario
