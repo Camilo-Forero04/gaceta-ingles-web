@@ -20,7 +20,7 @@ function BookModel() {
 
   // Cargamos la textura (mantenemos el v=2 por seguridad de caché)
 
-  const coverTexture = useTexture("/book_cover_texture.jpg?v=2");
+  const coverTexture = useTexture("/book_cover_texture.avif?v=2");
 
   coverTexture.center.set(0.5, 0.5);
 
