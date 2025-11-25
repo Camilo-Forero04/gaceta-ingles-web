@@ -12,7 +12,7 @@ useTexture.preload("/book_cover_texture.avif?v=2");
 function BookModel() {
   const meshRef = useRef<THREE.Mesh>(null);
   
-  const coverTexture = useTexture("/book_cover_texture.jpg?v=2"); 
+  const coverTexture = useTexture("/book_cover_texture.avif?v=2"); 
   coverTexture.center.set(0.5, 0.5); 
   
   const bookPaperColor = new THREE.Color("#FDFBF7");
