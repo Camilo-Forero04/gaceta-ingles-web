@@ -48,8 +48,6 @@ export default function PresaleHero() {
 
   const AHORRO = Math.round(((PRECIO_FULL - PRECIO_PREVENTA) / PRECIO_FULL) * 100);
 
-  // Fecha límite estratégica: 1 de Diciembre a medianoche
-
   const TARGET_DATE = "2025-12-01T23:59:59";
 
 
@@ -104,7 +102,7 @@ export default function PresaleHero() {
 
   const handlePurchase = async () => {
 
-    // 1. Pixel de Meta (Frontend)
+    // 1. Pixel de Meta
 
     const ReactPixel = (await import("react-facebook-pixel")).default;
 
@@ -126,7 +124,7 @@ export default function PresaleHero() {
 
     try {
 
-       // 2. Pedir firma al Backend (Producción Railway)
+       // 2. Pedir firma al Backend (Producción)
 
        const response = await fetch('https://gaceta-ingles-web-production.up.railway.app/payment/presale-info');
 
@@ -140,7 +138,7 @@ export default function PresaleHero() {
 
 
 
-       // 3. Abrir Widget de Wompi REAL (Limpio, sin params basura)
+       // 3. Abrir Widget de Wompi REAL
 
        if (typeof (window as any).WidgetCheckout !== 'undefined') {
 
@@ -156,7 +154,9 @@ export default function PresaleHero() {
 
             signature: { integrity: data.signature },
 
-            redirectUrl: 'https://www.gacetaingles.com/gracias'
+            redirectUrl: 'https://www.gacetaingles.com/gracias',
+
+            taxInCents: { vat: 0, consumption: 0 }
 
           });
 
@@ -165,8 +165,6 @@ export default function PresaleHero() {
           checkout.open((result: any) => {
 
             const transaction = result.transaction;
-
-            // Redirección de respaldo si Wompi no lo hace automático
 
             if (transaction.status === 'APPROVED') {
 
@@ -188,7 +186,7 @@ export default function PresaleHero() {
 
         console.error(e);
 
-        alert("Hubo un error al iniciar el pago. Por favor intenta de nuevo.");
+        alert("Hubo un error al iniciar el pago.");
 
     } finally {
 
@@ -202,19 +200,15 @@ export default function PresaleHero() {
 
   return (
 
-    // CONTENEDOR PRINCIPAL FLEX
-
-    // Móvil: flex-col (Texto arriba, Libro abajo)
-
-    // Desktop: lg:flex-row (Texto izquierda, Libro derecha)
-
-    <section className="relative bg-white overflow-hidden flex flex-col lg:flex-row max-w-7xl mx-auto min-h-auto lg:min-h-[650px]">
+    <section className="relative bg-white overflow-hidden flex flex-col lg:flex-row max-w-7xl mx-auto min-h-[auto] lg:min-h-[90vh]">
 
      
 
-      {/* 1. ZONA DE TEXTO (VA PRIMERO EN EL HTML) */}
+      {/* 1. ZONA DE TEXTO (VA PRIMERO) */}
 
-      <div className="w-full lg:w-1/2 flex items-center z-10 bg-white px-4 pt-8 pb-4 sm:px-12 lg:p-16 order-1">
+      {/* En móvil: Padding pequeño (px-4) y padding vertical ajustado. En Desktop: Padding grande. */}
+
+      <div className="w-full lg:w-1/2 flex items-center z-10 bg-white px-4 pt-8 pb-4 sm:px-12 lg:p-10 lg:order-1">
 
         <div className="w-full max-w-xl mx-auto lg:mx-0">
 
@@ -344,9 +338,9 @@ export default function PresaleHero() {
 
       {/* 2. ZONA DEL LIBRO 3D (VA SEGUNDO) */}
 
-      {/* En móvil: Altura fija de 400px para que el libro quepa bien. En Desktop: Ocupa la mitad derecha. */}
+      {/* Altura fija de 350px en móvil para que se vea bien */}
 
-      <div className="w-full h-[400px] lg:w-1/2 lg:h-auto bg-gray-50 relative z-0 flex items-center justify-center lg:order-2">
+      <div className="w-full h-[350px] lg:w-1/2 lg:h-auto bg-gray-50 relative z-0 flex items-center justify-center lg:order-2">
 
         <Book3DScene />
 
@@ -362,7 +356,7 @@ export default function PresaleHero() {
 
 
 
-// Componente auxiliar para cajitas del contador
+// Componente auxiliar
 
 function CounterBox({ value, label }: { value: number, label: string }) {
 
@@ -378,4 +372,4 @@ function CounterBox({ value, label }: { value: number, label: string }) {
 
   );
 
-}
+} 
