@@ -51,7 +51,7 @@ function BookModel() {
 
 export default function Book3DScene() {
   return (
-    <div className="h-full w-full flex items-center justify-center cursor-grab active:cursor-grabbing touch-none">
+    <div className="h-full w-full flex items-center justify-center pointer-events-none">
       {/* Mantenemos el dpr bajo para rendimiento en móviles */}
       <Canvas shadows dpr={[1, 2]} camera={{ position: [0, 0, 10], fov: 35 }}>
         
