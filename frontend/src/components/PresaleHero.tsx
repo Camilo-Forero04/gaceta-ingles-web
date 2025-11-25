@@ -181,16 +181,6 @@ export default function PresaleHero() {
            Mostramos una IMAGEN estática primero. Solo cargamos el 3D pesado (load3D) 
            después de 2.5 segundos. 
         */}
-        
-        {!load3D && (
-             // REEMPLAZA src='/book-placeholder.png' con una captura de pantalla real de tu libro 3D
-             // Usa priority={true} si usas next/image
-             <img 
-               src="/book-cover-placeholder.jpg" 
-               alt="Portada del libro Desbloquea tu fluidez"
-               className="object-contain h-[80%] w-auto animate-fade-in"
-             />
-        )}
 
         {load3D && (
            <div className="absolute inset-0 w-full h-full animate-fade-in">
