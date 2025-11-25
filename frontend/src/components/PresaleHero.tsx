@@ -2,31 +2,20 @@
 
 import { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
-import Image from "next/image"; // Importamos Image para el placeholder
+// import Image from "next/image"; // Descomenta si usas next/image para el placeholder
 
-// Import dinámico del libro con ESTRATEGIA DE IMAGEN ESTÁTICA
+// Import dinámico del libro. 
+// NOTA: No definimos 'loading' aquí para controlar la carga manualmente en el componente padre y reducir TBT.
 const Book3DScene = dynamic(() => import("./Book3DScene"), { 
   ssr: false,
-  loading: () => (
-    // 👇 ESTA ES LA MAGIA:
-    // Mostramos una imagen estática inmediata mientras carga el 3D pesado.
-    // Esto baja el LCP drásticamente porque Google ve contenido al instante.
-    <div className="flex items-center justify-center h-full w-full">
-       <Image 
-         src="/book_cover_texture.jpg" // Usamos la misma textura como "preview"
-         alt="Desbloquea tu fluidez en inglés"
-         width={280} 
-         height={400}
-         className="object-contain drop-shadow-xl" // Sombra para que se parezca al 3D
-         priority // Carga prioritaria (crítico para LCP)
-       />
-    </div>
-  )
 });
 
 export default function PresaleHero() {
   const [isLoading, setIsLoading] = useState(false);
+  // Estado para diferir la carga del 3D
+  const [load3D, setLoad3D] = useState(false);
   
+  // --- LÓGICA DEL CONTADOR ---
   const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
   const [isMounted, setIsMounted] = useState(false);
 
@@ -37,8 +26,16 @@ export default function PresaleHero() {
 
   useEffect(() => {
     setIsMounted(true);
-    const target = new Date(TARGET_DATE).getTime();
 
+    // 1. ESTRATEGIA DE RENDIMIENTO: Retrasar el 3D
+    // Esperamos 2.5 segundos o requestIdleCallback para cargar el 3D.
+    // Esto permite que el texto y el botón (LCP y TBT) carguen instantáneamente sin bloqueos.
+    const load3DTimer = setTimeout(() => {
+      setLoad3D(true);
+    }, 2500);
+
+    // Lógica del contador
+    const target = new Date(TARGET_DATE).getTime();
     const interval = setInterval(() => {
       const now = new Date().getTime();
       const difference = target - now;
@@ -55,10 +52,15 @@ export default function PresaleHero() {
       }
     }, 1000);
 
-    return () => clearInterval(interval);
+    return () => {
+      clearInterval(interval);
+      clearTimeout(load3DTimer);
+    };
   }, []);
 
+  // --- LÓGICA DE PAGO REAL ---
   const handlePurchase = async () => {
+    // Lazy load del Pixel solo al hacer clic (ahorra JS inicial)
     const ReactPixel = (await import("react-facebook-pixel")).default;
     ReactPixel.track("InitiateCheckout", {
         currency: "COP",
@@ -70,7 +72,7 @@ export default function PresaleHero() {
 
     try {
        const response = await fetch('https://gaceta-ingles-web-production.up.railway.app/payment/presale-info');
-       if (!response.ok) throw new Error("Error conectando con el servidor");
+       if (!response.ok) throw new Error("Error conectando con el servidor de pagos");
        const data = await response.json();
 
        if (typeof (window as any).WidgetCheckout !== 'undefined') {
@@ -80,7 +82,8 @@ export default function PresaleHero() {
             reference: data.reference,
             publicKey: data.publicKey,
             signature: { integrity: data.signature }, 
-            redirectUrl: 'https://www.gacetaingles.com/gracias'
+            redirectUrl: 'https://www.gacetaingles.com/gracias',
+            taxInCents: { vat: 0, consumption: 0 }
           });
           
           checkout.open((result: any) => {
@@ -95,19 +98,20 @@ export default function PresaleHero() {
 
     } catch (e) {
         console.error(e);
-        alert("Hubo un error al iniciar el pago. Por favor intenta de nuevo.");
+        alert("Hubo un error al iniciar el pago.");
     } finally {
         setIsLoading(false);
     }
   };
 
   return (
-    <section className="relative bg-white overflow-hidden flex flex-col lg:flex-row max-w-7xl mx-auto min-h-auto lg:min-h-[650px]">
+    <section className="relative bg-white overflow-hidden flex flex-col lg:flex-row max-w-7xl mx-auto min-h-[auto] lg:min-h-[90vh]">
       
-      {/* 1. TEXTO */}
-      <div className="w-full lg:w-1/2 flex items-center z-10 bg-white px-4 pt-8 pb-4 sm:px-12 lg:p-16 order-1">
+      {/* 1. ZONA DE TEXTO (VA PRIMERO - CRÍTICO PARA LCP) */}
+      <div className="w-full lg:w-1/2 flex items-center z-10 bg-white px-4 pt-8 pb-4 sm:px-12 lg:p-10 lg:order-1">
         <div className="w-full max-w-xl mx-auto lg:mx-0">
             
+            {/* Etiqueta */}
             <div className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-indigo-100 text-indigo-800 mb-4">
               <span className="flex h-2 w-2 relative mr-2">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
@@ -116,6 +120,7 @@ export default function PresaleHero() {
               Fase de Preventa Activa
             </div>
 
+            {/* Título - Prioridad de renderizado */}
             <h1 className="text-4xl tracking-tight font-extrabold text-gray-900 sm:text-5xl md:text-6xl mb-4 leading-tight">
               Desbloquea tu fluidez con <span className="text-indigo-600 block lg:inline">el Método IA SPOKEN</span>
             </h1>
@@ -124,7 +129,8 @@ export default function PresaleHero() {
               Las academias te enseñan a memorizar. La IA te enseña a hablar. Únete a la revolución y ahorra un <strong>{AHORRO}%</strong> antes del lanzamiento oficial.
             </p>
 
-            {isMounted && (
+            {/* Contador */}
+            {isMounted ? (
               <div className="flex flex-wrap gap-3 mb-6">
                 <CounterBox value={timeLeft.days} label="Días" />
                 <CounterBox value={timeLeft.hours} label="Horas" />
@@ -134,8 +140,12 @@ export default function PresaleHero() {
                   ⚠️ ¡La oferta termina pronto!
                 </div>
               </div>
+            ) : (
+               // Placeholder del contador para evitar salto de diseño (CLS)
+               <div className="h-[58px] w-[300px] bg-gray-100 rounded-lg mb-6 animate-pulse"></div>
             )}
 
+            {/* Precios */}
             <div className="flex items-center gap-4 mb-6">
               <div className="flex items-baseline gap-1">
                   <span className="text-4xl sm:text-5xl font-extrabold text-gray-900">
@@ -148,6 +158,7 @@ export default function PresaleHero() {
               </span>
             </div>
 
+            {/* Botón de Compra */}
             <div className="mt-4">
                 <button
                   onClick={handlePurchase}
@@ -163,10 +174,37 @@ export default function PresaleHero() {
         </div>
       </div>
 
-      {/* 2. LIBRO 3D */}
-      <div className="w-full h-[400px] lg:w-1/2 lg:h-auto bg-gray-50 relative z-0 flex items-center justify-center lg:order-2">
-        {/* Aquí es donde el Placeholder salva el día */}
-        <Book3DScene />
+      {/* 2. ZONA DEL LIBRO 3D (VA SEGUNDO) */}
+      <div className="w-full h-[350px] lg:w-1/2 lg:h-auto bg-gray-50 relative z-0 flex items-center justify-center lg:order-2 overflow-hidden">
+        
+        {/* SOLUCIÓN MAESTRA AL TBT:
+           Mostramos una IMAGEN estática primero. Solo cargamos el 3D pesado (load3D) 
+           después de 2.5 segundos. 
+        */}
+        
+        {!load3D && (
+             // REEMPLAZA src='/book-placeholder.png' con una captura de pantalla real de tu libro 3D
+             // Usa priority={true} si usas next/image
+             <img 
+               src="/book-cover-placeholder.jpg" 
+               alt="Portada del libro Desbloquea tu fluidez"
+               className="object-contain h-[80%] w-auto animate-fade-in"
+             />
+        )}
+
+        {load3D && (
+           <div className="absolute inset-0 w-full h-full animate-fade-in">
+              <Book3DScene />
+           </div>
+        )}
+        
+        {/* Indicador de carga sutil mientras llega el 3D real */}
+        {!load3D && (
+             <div className="absolute bottom-4 right-4">
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-indigo-600"></div>
+             </div>
+        )}
+
       </div>
 
     </section>
