@@ -2,13 +2,24 @@
 
 import { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
+import Image from "next/image"; // Importamos Image para el placeholder
 
-// Import dinámico del libro para evitar errores de SSR
+// Import dinámico del libro con ESTRATEGIA DE IMAGEN ESTÁTICA
 const Book3DScene = dynamic(() => import("./Book3DScene"), { 
   ssr: false,
   loading: () => (
-    <div className="flex items-center justify-center h-full bg-gray-50">
-      <div className="animate-pulse text-gray-400 text-sm font-medium">Cargando libro...</div>
+    // 👇 ESTA ES LA MAGIA:
+    // Mostramos una imagen estática inmediata mientras carga el 3D pesado.
+    // Esto baja el LCP drásticamente porque Google ve contenido al instante.
+    <div className="flex items-center justify-center h-full w-full">
+       <Image 
+         src="/book_cover_texture.jpg" // Usamos la misma textura como "preview"
+         alt="Desbloquea tu fluidez en inglés"
+         width={280} 
+         height={400}
+         className="object-contain drop-shadow-xl" // Sombra para que se parezca al 3D
+         priority // Carga prioritaria (crítico para LCP)
+       />
     </div>
   )
 });
@@ -16,7 +27,6 @@ const Book3DScene = dynamic(() => import("./Book3DScene"), {
 export default function PresaleHero() {
   const [isLoading, setIsLoading] = useState(false);
   
-  // --- LÓGICA DEL CONTADOR ---
   const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
   const [isMounted, setIsMounted] = useState(false);
 
@@ -48,9 +58,7 @@ export default function PresaleHero() {
     return () => clearInterval(interval);
   }, []);
 
-  // --- LÓGICA DE PAGO REAL ---
   const handlePurchase = async () => {
-    // 1. Pixel de Meta
     const ReactPixel = (await import("react-facebook-pixel")).default;
     ReactPixel.track("InitiateCheckout", {
         currency: "COP",
@@ -61,14 +69,10 @@ export default function PresaleHero() {
     setIsLoading(true);
 
     try {
-       // 2. Pedir firma al Backend (Producción)
        const response = await fetch('https://gaceta-ingles-web-production.up.railway.app/payment/presale-info');
-       
-       if (!response.ok) throw new Error("Error conectando con el servidor de pagos");
-       
+       if (!response.ok) throw new Error("Error conectando con el servidor");
        const data = await response.json();
 
-       // 3. Abrir Widget de Wompi REAL
        if (typeof (window as any).WidgetCheckout !== 'undefined') {
           const checkout = new (window as any).WidgetCheckout({
             currency: 'COP',
@@ -76,8 +80,7 @@ export default function PresaleHero() {
             reference: data.reference,
             publicKey: data.publicKey,
             signature: { integrity: data.signature }, 
-            redirectUrl: 'https://www.gacetaingles.com/gracias',
-            taxInCents: { vat: 0, consumption: 0 }
+            redirectUrl: 'https://www.gacetaingles.com/gracias'
           });
           
           checkout.open((result: any) => {
@@ -92,21 +95,19 @@ export default function PresaleHero() {
 
     } catch (e) {
         console.error(e);
-        alert("Hubo un error al iniciar el pago.");
+        alert("Hubo un error al iniciar el pago. Por favor intenta de nuevo.");
     } finally {
         setIsLoading(false);
     }
   };
 
   return (
-    <section className="relative bg-white overflow-hidden flex flex-col lg:flex-row max-w-7xl mx-auto min-h-[auto] lg:min-h-[90vh]">
+    <section className="relative bg-white overflow-hidden flex flex-col lg:flex-row max-w-7xl mx-auto min-h-auto lg:min-h-[650px]">
       
-      {/* 1. ZONA DE TEXTO (VA PRIMERO) */}
-      {/* En móvil: Padding pequeño (px-4) y padding vertical ajustado. En Desktop: Padding grande. */}
-      <div className="w-full lg:w-1/2 flex items-center z-10 bg-white px-4 pt-8 pb-4 sm:px-12 lg:p-10 lg:order-1">
+      {/* 1. TEXTO */}
+      <div className="w-full lg:w-1/2 flex items-center z-10 bg-white px-4 pt-8 pb-4 sm:px-12 lg:p-16 order-1">
         <div className="w-full max-w-xl mx-auto lg:mx-0">
             
-            {/* Etiqueta */}
             <div className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-indigo-100 text-indigo-800 mb-4">
               <span className="flex h-2 w-2 relative mr-2">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
@@ -115,17 +116,14 @@ export default function PresaleHero() {
               Fase de Preventa Activa
             </div>
 
-            {/* Título */}
             <h1 className="text-4xl tracking-tight font-extrabold text-gray-900 sm:text-5xl md:text-6xl mb-4 leading-tight">
               Desbloquea tu fluidez con <span className="text-indigo-600 block lg:inline">el Método IA SPOKEN</span>
             </h1>
             
-            {/* Subtítulo */}
             <p className="mt-2 text-base text-gray-500 sm:text-lg md:text-xl mb-6 leading-relaxed">
               Las academias te enseñan a memorizar. La IA te enseña a hablar. Únete a la revolución y ahorra un <strong>{AHORRO}%</strong> antes del lanzamiento oficial.
             </p>
 
-            {/* Contador */}
             {isMounted && (
               <div className="flex flex-wrap gap-3 mb-6">
                 <CounterBox value={timeLeft.days} label="Días" />
@@ -138,7 +136,6 @@ export default function PresaleHero() {
               </div>
             )}
 
-            {/* Precios */}
             <div className="flex items-center gap-4 mb-6">
               <div className="flex items-baseline gap-1">
                   <span className="text-4xl sm:text-5xl font-extrabold text-gray-900">
@@ -151,7 +148,6 @@ export default function PresaleHero() {
               </span>
             </div>
 
-            {/* Botón de Compra */}
             <div className="mt-4">
                 <button
                   onClick={handlePurchase}
@@ -167,9 +163,9 @@ export default function PresaleHero() {
         </div>
       </div>
 
-      {/* 2. ZONA DEL LIBRO 3D (VA SEGUNDO) */}
-      {/* Altura fija de 350px en móvil para que se vea bien */}
-      <div className="w-full h-[350px] lg:w-1/2 lg:h-auto bg-gray-50 relative z-0 flex items-center justify-center lg:order-2">
+      {/* 2. LIBRO 3D */}
+      <div className="w-full h-[400px] lg:w-1/2 lg:h-auto bg-gray-50 relative z-0 flex items-center justify-center lg:order-2">
+        {/* Aquí es donde el Placeholder salva el día */}
         <Book3DScene />
       </div>
 
@@ -177,7 +173,6 @@ export default function PresaleHero() {
   );
 }
 
-// Componente auxiliar
 function CounterBox({ value, label }: { value: number, label: string }) {
   return (
     <div className="flex flex-col items-center bg-white border-2 border-gray-100 p-2 rounded-lg min-w-[60px] shadow-sm">
