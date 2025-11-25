@@ -10,7 +10,7 @@ function BookModel() {
   // Usamos el tipo específico 'Mesh' en lugar de 'THREE.Mesh'
   const meshRef = useRef<Mesh>(null);
   
-  const coverTexture = useTexture("/book_cover_texture.jpg?v=2"); 
+  const coverTexture = useTexture("/book_cover_texture.avif?v=2"); 
   coverTexture.center.set(0.5, 0.5); 
   
   // Usamos 'new Color' directo, sin el prefijo THREE.
