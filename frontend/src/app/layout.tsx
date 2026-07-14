@@ -14,9 +14,39 @@ const inter = Inter({
   preload: true
 });
 
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.gacetaingles.com";
+
 export const metadata: Metadata = {
-  title: "La Gaceta del Inglés - Preventa",
-  description: "Domina el inglés real sin rellenos.",
+  metadataBase: new URL(SITE_URL),
+  title: {
+    default: "La Gaceta del Inglés - Desbloquea tu Fluidez",
+    template: "%s | La Gaceta del Inglés",
+  },
+  description:
+    "Aprende inglés real con el Método IA SPOKEN: combina Inteligencia Artificial y práctica conversacional para hablar sin miedo.",
+  openGraph: {
+    type: "website",
+    locale: "es_CO",
+    url: SITE_URL,
+    siteName: "La Gaceta del Inglés",
+    title: "La Gaceta del Inglés - Desbloquea tu Fluidez",
+    description:
+      "Aprende inglés real con el Método IA SPOKEN: combina Inteligencia Artificial y práctica conversacional para hablar sin miedo.",
+    images: [
+      {
+        url: "/book_cover_texture_2.avif",
+        width: 800,
+        height: 1000,
+        alt: "eBook Desbloquea tu Fluidez - Método IA SPOKEN",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "La Gaceta del Inglés - Desbloquea tu Fluidez",
+    description:
+      "Aprende inglés real con el Método IA SPOKEN: IA + práctica conversacional para hablar sin miedo.",
+  },
 };
 
 export default function RootLayout({

@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post } from '@nestjs/common'; // <--- Agrega Body y Post
+import { Body, Controller, Get, HttpCode, Post } from '@nestjs/common';
 import { PaymentService } from './payment.service';
 
 @Controller('payment')
@@ -10,10 +10,10 @@ export class PaymentController {
     return this.paymentService.getPresaleSignature();
   }
 
-  // ESTO ES NUEVO: Escuchamos a Wompi
+  // Webhook de eventos de Wompi
   @Post('webhook')
+  @HttpCode(200) // Wompi espera 200 en caso de éxito
   handleWompiWebhook(@Body() body: any) {
-    console.log('🔔 Webhook recibido de Wompi:', body?.data?.transaction?.status);
     return this.paymentService.handleWebhook(body);
   }
 }

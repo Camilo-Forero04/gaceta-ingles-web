@@ -4,7 +4,7 @@ import { useEffect } from "react";
 import ReactPixel from "react-facebook-pixel";
 import { usePathname, useSearchParams } from "next/navigation";
 
-const PIXEL_ID = "1369127641335121"; // <--- ⚠️ PON TU ID DE META AQUÍ
+const PIXEL_ID = process.env.NEXT_PUBLIC_FB_PIXEL_ID ?? "1369127641335121";
 
 export default function FacebookPixel() {
   const pathname = usePathname();

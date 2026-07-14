@@ -25,9 +25,9 @@ export default function FeaturedProducts() {
             
             {/* Imagen / Mockup */}
             <div className="bg-slate-100 aspect-[4/3] relative flex items-center justify-center overflow-hidden p-6">
-              {/* Etiqueta de Preventa */}
+              {/* Etiqueta */}
               <div className="absolute top-4 left-4 bg-indigo-100 text-indigo-700 text-xs font-bold px-3 py-1 rounded-full z-10">
-                Fase de Preventa
+                Disponible Ahora
               </div>
               
               {/* Aquí puedes reemplazar este div por tu <Book3DScene /> o un <Image /> de Next.js con la portada */}
@@ -47,18 +47,18 @@ export default function FeaturedProducts() {
                 De la parálisis por análisis a la conversación real sin miedo. Configura la IA como tu tutor nativo 24/7.
               </p>
               
-              {/* Precios */}
+              {/* Precio */}
               <div className="flex items-end gap-2 mb-6">
-                <span className="text-3xl font-black text-slate-900">$26.700</span>
-                <span className="text-sm text-slate-400 line-through mb-1">COP $49.000</span>
+                <span className="text-3xl font-black text-slate-900">$49.000</span>
+                <span className="text-sm text-slate-400 mb-1">COP</span>
               </div>
 
               {/* Botón CTA */}
-              <Link 
-                href="/libro" 
+              <Link
+                href="/ebook"
                 className="block w-full text-center px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl transition-colors"
               >
-                Ver Detalles y Reservar
+                Ver Detalles y Comprar
               </Link>
             </div>
           </div>

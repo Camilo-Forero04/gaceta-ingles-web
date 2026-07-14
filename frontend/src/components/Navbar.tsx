@@ -3,10 +3,12 @@
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import Image from "next/image";
+import { useWompiCheckout } from "../hooks/useWompiCheckout";
 
 export default function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
-  const [isLoading, setIsLoading] = useState(false); // <--- Nuevo estado para carga
+  // Lógica de pago compartida (Wompi + Pixel)
+  const { handlePurchase, isLoading } = useWompiCheckout("Navbar");
 
   // Detectar scroll para aumentar la sombra cuando baja
   useEffect(() => {
@@ -20,57 +22,6 @@ export default function Navbar() {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
-
-  // --- LÓGICA DE PAGO (Copiada del Hero para que funcione aquí también) ---
-  const handlePurchase = async () => {
-    setIsLoading(true);
-
-    try {
-       // 1. Pixel de Meta (Import dinámico)
-       const ReactPixel = (await import("react-facebook-pixel")).default;
-       ReactPixel.track("InitiateCheckout", {
-           currency: "COP",
-           value: 26700,
-           content_name: "La Gaceta del Inglés (Preventa - Navbar)" // Etiqueta diferente para saber que vino del menú
-       });
-
-       // 2. Pedir firma al Backend (Railway)
-       const response = await fetch('https://gaceta-ingles-web-production.up.railway.app/payment/presale-info');
-       
-       if (!response.ok) throw new Error("Error conectando con el servidor de pagos");
-       
-       const data = await response.json();
-
-       // 3. Abrir Widget de Wompi REAL
-       if (typeof (window as any).WidgetCheckout !== 'undefined') {
-          const checkout = new (window as any).WidgetCheckout({
-            currency: 'COP',
-            amountInCents: Number(data.amountInCents),
-            reference: data.reference,
-            publicKey: data.publicKey,
-            signature: { integrity: data.signature }, 
-            redirectUrl: 'https://www.gacetaingles.com/gracias',
-            taxInCents: { vat: 0, consumption: 0 }
-          });
-          
-          checkout.open((result: any) => {
-            const transaction = result.transaction;
-            if (transaction.status === 'APPROVED') {
-                window.location.href = `/gracias?id=${transaction.id}`;
-            }
-          });
-       } else {
-           alert("El sistema de pagos está cargando. Intenta de nuevo en 2 segundos.");
-       }
-
-    } catch (e) {
-        console.error(e);
-        alert("Hubo un error al iniciar el pago.");
-    } finally {
-        setIsLoading(false);
-    }
-  };
-  // -----------------------------------------------------------------------
 
   return (
     <header
@@ -97,13 +48,13 @@ export default function Navbar() {
 
           {/* ENLACES (Desktop) */}
           <nav className="hidden md:flex space-x-8">
-            <Link href="#temario" className="text-gray-600 hover:text-indigo-600 px-3 py-2 rounded-md text-sm font-medium transition-colors">
+            <Link href="/ebook#temario" className="text-gray-600 hover:text-indigo-600 px-3 py-2 rounded-md text-sm font-medium transition-colors">
               Temario
             </Link>
-            <Link href="#metodo" className="text-gray-600 hover:text-indigo-600 px-3 py-2 rounded-md text-sm font-medium transition-colors">
+            <Link href="/#metodo" className="text-gray-600 hover:text-indigo-600 px-3 py-2 rounded-md text-sm font-medium transition-colors">
               Método
             </Link>
-            <Link href="#garantia" className="text-gray-600 hover:text-indigo-600 px-3 py-2 rounded-md text-sm font-medium transition-colors">
+            <Link href="/ebook#garantia" className="text-gray-600 hover:text-indigo-600 px-3 py-2 rounded-md text-sm font-medium transition-colors">
               Garantía
             </Link>
           </nav>
@@ -126,7 +77,7 @@ export default function Navbar() {
                   Cargando...
                 </span>
               ) : (
-                "Reservar Copia"
+                "Comprar Copia"
               )}
             </button>
           </div>

@@ -77,7 +77,7 @@ export default function Syllabus() {
               <div className="text-center md:text-left">
                 <div className="flex items-center justify-center md:justify-start gap-2 mb-1">
                     <span className="bg-orange-100 text-orange-800 text-[10px] font-bold px-2 py-0.5 rounded-full border border-orange-200 uppercase tracking-wider">
-                        Solo en Preventa
+                        Bonus Incluido
                     </span>
                     <span className="bg-green-100 text-green-700 text-[10px] font-bold px-2 py-0.5 rounded-full border border-green-200 uppercase tracking-wider">
                         Empieza Hoy Mismo
@@ -87,7 +87,7 @@ export default function Syllabus() {
                   BONUS VIP: Challenge de Speaking (20 Días)
                 </h3>
                 <p className="text-gray-600 mt-2 leading-relaxed max-w-xl text-sm md:text-base">
-                  No esperes al lanzamiento. Acceso inmediato a nuestro <strong>Grupo Privado de WhatsApp</strong>. 
+                  Acceso inmediato a nuestro <strong>Grupo Privado de WhatsApp</strong>.
                   Recibe una misión diaria para <span className="italic text-gray-500">perder el miedo a hablar con soporte real.</span>
                 </p>
               </div>

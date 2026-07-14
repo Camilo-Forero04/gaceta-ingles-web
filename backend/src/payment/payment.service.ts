@@ -1,12 +1,21 @@
-import { Injectable } from '@nestjs/common';
+import {
+  Injectable,
+  InternalServerErrorException,
+  Logger,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as crypto from 'crypto';
 import { PrismaService } from '../prisma.service';
 import { Resend } from 'resend';
 import * as bizSdk from 'facebook-nodejs-business-sdk';
 
+// Precio única fuente de verdad del backend
+const PRICE_IN_CENTS = 4900000; // $49.000 COP
+
 @Injectable()
 export class PaymentService {
+  private readonly logger = new Logger(PaymentService.name);
   private resend: Resend;
 
   constructor(
@@ -16,17 +25,51 @@ export class PaymentService {
     this.resend = new Resend(this.configService.get<string>('RESEND_API_KEY'));
   }
 
+  /**
+   * Verifica la firma (checksum) del evento según la documentación de Wompi:
+   * SHA-256( valores de signature.properties + timestamp + secreto de eventos )
+   */
+  private verifyEventSignature(event: any): boolean {
+    const eventsSecret = this.configService.get<string>('WOMPI_EVENTS_SECRET');
+    if (!eventsSecret) {
+      this.logger.error('WOMPI_EVENTS_SECRET no está configurado');
+      return false;
+    }
+
+    const checksum: string | undefined = event?.signature?.checksum;
+    const properties: string[] = event?.signature?.properties;
+    const timestamp = event?.timestamp;
+
+    if (!checksum || !Array.isArray(properties) || timestamp === undefined) {
+      return false;
+    }
+
+    // Concatenar los valores indicados en signature.properties (ej: "transaction.id")
+    const concatenated = properties
+      .map((prop) =>
+        prop.split('.').reduce((obj: any, key: string) => obj?.[key], event.data),
+      )
+      .join('');
+
+    const computed = crypto
+      .createHash('sha256')
+      .update(`${concatenated}${timestamp}${eventsSecret.trim()}`)
+      .digest('hex');
+
+    return computed.toLowerCase() === String(checksum).toLowerCase();
+  }
+
   public getPresaleSignature() {
     const currency = 'COP';
-    const priceInCents = 2670000; 
-    const reference = `GACETA-${Date.now()}`; 
+    const priceInCents = PRICE_IN_CENTS;
+    const reference = `GACETA-${Date.now()}`;
 
     const integritySecret = this.configService.get<string>('WOMPI_INTEGRITY_SECRET');
     const publicKey = this.configService.get<string>('WOMPI_PUB_KEY');
 
     if (!integritySecret || !publicKey) {
-      console.error("❌ ERROR: Faltan llaves de Wompi");
-      throw new Error('Faltan llaves de Wompi');
+      this.logger.error('Faltan llaves de Wompi en las variables de entorno');
+      throw new InternalServerErrorException('Configuración de pagos incompleta');
     }
 
     const cleanSecret = integritySecret.trim();
@@ -45,54 +88,72 @@ export class PaymentService {
   }
 
   async handleWebhook(event: any) {
-    const transaction = event?.data?.transaction;
+    // 1. Verificar autenticidad del evento (evita ventas falsificadas)
+    if (!this.verifyEventSignature(event)) {
+      this.logger.warn('Webhook rechazado: firma inválida');
+      throw new UnauthorizedException('Firma de evento inválida');
+    }
 
+    const transaction = event?.data?.transaction;
     if (!transaction) return { status: 'Ignored (No data)' };
 
-    if (transaction.status === 'APPROVED') {
-        console.log(`💰 VENTA REAL Aprobada: ${transaction.customer_email}`);
-        
-        try {
-            const existingOrder = await this.prisma.order.findUnique({
-                where: { wompiReference: transaction.reference }
-            });
-
-            if (!existingOrder) {
-                // A. Guardar en Base de Datos
-                await this.prisma.order.create({
-                    data: {
-                        customerEmail: transaction.customer_email,
-                        wompiReference: transaction.reference,
-                        wompiTransactionId: transaction.id,
-                        amount: transaction.amount_in_cents,
-                        status: 'APPROVED',
-                        isDelivered: false,
-                    },
-                });
-                console.log('💾 Orden guardada en Supabase');
-
-                // B. Ejecutar acciones secundarias (Correo + Facebook) en paralelo
-                await Promise.all([
-                    this.sendWelcomeEmail(transaction.customer_email),
-                    this.sendFacebookEvent(transaction)
-                ]);
-            }
-            return { success: true };
-
-        } catch (error) {
-            console.error('Error procesando orden:', error);
-            return { success: false, error: error.message };
-        }
+    if (transaction.status !== 'APPROVED') {
+      return { status: 'Ignored (Not Approved)' };
     }
-    return { status: 'Ignored (Not Approved)' };
+
+    // 2. Validar que el monto pagado corresponda al precio real
+    if (transaction.amount_in_cents !== PRICE_IN_CENTS) {
+      this.logger.warn(
+        `Webhook rechazado: monto inesperado (${transaction.amount_in_cents}) en ref ${transaction.reference}`,
+      );
+      return { status: 'Ignored (Amount mismatch)' };
+    }
+
+    this.logger.log(`Venta aprobada: ref ${transaction.reference}`);
+
+    try {
+      // 3. Crear la orden de forma atómica.
+      // Si Wompi reenvía el evento, el índice único lanza P2002 y no duplicamos correo/CAPI.
+      await this.prisma.order.create({
+        data: {
+          customerEmail: transaction.customer_email,
+          customerName: transaction.customer_data?.full_name ?? null,
+          wompiReference: transaction.reference,
+          wompiTransactionId: transaction.id,
+          amount: transaction.amount_in_cents,
+          status: 'APPROVED',
+          isDelivered: false,
+        },
+      });
+      this.logger.log(`Orden guardada: ref ${transaction.reference}`);
+
+      // 4. Acciones secundarias en paralelo (fallos aquí no revierten la orden)
+      await Promise.all([
+        this.sendWelcomeEmail(transaction.customer_email),
+        this.sendFacebookEvent(transaction),
+      ]);
+
+      return { success: true };
+    } catch (error) {
+      if (error?.code === 'P2002') {
+        // Evento duplicado de Wompi: la orden ya existe, todo bien.
+        return { status: 'Ignored (Duplicate event)' };
+      }
+      this.logger.error(`Error procesando orden ref ${transaction.reference}`, error?.stack);
+      // 5xx para que Wompi reintente la entrega del evento
+      throw new InternalServerErrorException('Error procesando la orden');
+    }
   }
 
-  // --- FUNCIÓN DE CORREO (HTML MEJORADO) ---
+  // --- FUNCIÓN DE CORREO ---
 private async sendWelcomeEmail(email: string) {
+  const whatsappGroupUrl =
+    this.configService.get<string>('WHATSAPP_GROUP_URL') ??
+    'https://chat.whatsapp.com/EIV75yl42Kq7sG7kMEYwIy';
   try {
       await this.resend.emails.send({
           from: 'La Gaceta del Inglés <info@gacetaingles.com>',
-          reply_to: 'info.gaceta.ingles@gmail.com',
+          replyTo: 'info.gaceta.ingles@gmail.com',
           to: [email],
           subject: '🎫 Tu Ticket VIP: Entra al Challenge de Speaking + Recibo',
           html: `
@@ -103,11 +164,11 @@ private async sendWelcomeEmail(email: string) {
                 
                 <div style="text-align: center; margin-bottom: 30px;">
                     <h1 style="color: #4F46E5; margin: 0; font-size: 28px; font-weight: 800;">¡Pago Exitoso! 🚀</h1>
-                    <p style="color: #6b7280; font-size: 14px; margin-top: 5px;">Confirmación de orden #PREVENTA</p>
+                    <p style="color: #6b7280; font-size: 14px; margin-top: 5px;">Confirmación de tu orden</p>
                 </div>
 
                 <p style="font-size: 16px;">Hola,</p>
-                <p style="font-size: 16px;">¡Te confirmamos que tu pago ha sido procesado correctamente! Ya tienes asegurada tu copia de <strong>"Desbloquea tu Fluidez"</strong> al precio congelado de preventa.</p>
+                <p style="font-size: 16px;">¡Te confirmamos que tu pago ha sido procesado correctamente! Ya tienes asegurada tu copia de <strong>"Desbloquea tu Fluidez"</strong>.</p>
                 
                 <div style="background-color: #fffbeb; border-left: 5px solid #f59e0b; padding: 20px; margin: 25px 0; border-radius: 4px;">
                     <p style="margin: 0; font-weight: bold; color: #92400e; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;">TU FLUIDEZ EMPIEZA HOY MISMO...</p>
@@ -119,7 +180,7 @@ private async sendWelcomeEmail(email: string) {
                 <div style="text-align: center; margin: 40px 0;">
                     <h3 style="margin-bottom: 20px; font-size: 18px; color: #111827;">👇 TU MISIÓN DE HOY:</h3>
                     
-                    <a href="https://chat.whatsapp.com/EIV75yl42Kq7sG7kMEYwIy" 
+                    <a href="${whatsappGroupUrl}"
                        style="background-color: #25D366; color: white; padding: 18px 35px; text-decoration: none; border-radius: 50px; font-weight: bold; font-size: 18px; display: inline-block; box-shadow: 0 4px 10px rgba(37, 211, 102, 0.3);">
                          👉 ENTRAR AL GRUPO DE WHATSAPP
                     </a>
@@ -139,7 +200,7 @@ private async sendWelcomeEmail(email: string) {
                   <ul style="padding-left: 20px; margin: 0; list-style-type: circle; color: #374151;">
                     <li style="margin-bottom: 10px;"><strong>Producto:</strong> eBook "Desbloquea tu Fluidez"</li>
                     <li style="margin-bottom: 10px;"><strong>Bonus:</strong> Acceso al Speaking Challenge de WhatsApp (Entregado arriba 👆)</li>
-                    <li><strong>Entrega del eBook:</strong> 16 de Enero, 2026 <br><span style="font-size: 13px; color: #6b7280;">(Te llegará el enlace de descarga aquí mismo)</span>.</li>
+                    <li><strong>Entrega del eBook:</strong> Muy pronto <br><span style="font-size: 13px; color: #6b7280;">(Te llegará el enlace de descarga a este mismo correo)</span>.</li>
                   </ul>
                 </div>
 
@@ -153,10 +214,10 @@ private async sendWelcomeEmail(email: string) {
             </body>
             </html>
           `,
-      } as any);
-      console.log('📧 Correo enviado a:', email);
+      });
+      this.logger.log('Correo de bienvenida enviado');
   } catch (error) {
-      console.error('❌ Error enviando correo:', error);
+      this.logger.error('Error enviando correo de bienvenida', error?.stack);
   }
 }
 
@@ -167,7 +228,7 @@ private async sendWelcomeEmail(email: string) {
         const pixelId = this.configService.get<string>('FACEBOOK_PIXEL_ID');
 
         if (!accessToken || !pixelId) {
-            console.warn("⚠️ Falta configurar Facebook CAPI en .env");
+            this.logger.warn('Falta configurar Facebook CAPI en .env');
             return;
         }
 
@@ -186,7 +247,7 @@ private async sendWelcomeEmail(email: string) {
         const customData = new CustomData()
             .setValue(transaction.amount_in_cents / 100)
             .setCurrency('COP')
-            .setContentName('La Gaceta del Inglés (Preventa)');
+            .setContentName('La Gaceta del Inglés - Desbloquea tu Fluidez');
 
         const serverEvent = new ServerEvent()
             .setEventName('Purchase')
@@ -199,10 +260,10 @@ private async sendWelcomeEmail(email: string) {
 
         const eventRequest = new EventRequest(accessToken, pixelId).setEvents([serverEvent]);
         await eventRequest.execute();
-        console.log("💙 Evento CAPI enviado a Facebook");
+        this.logger.log('Evento Purchase enviado a Facebook CAPI');
 
     } catch (error) {
-        console.error("❌ Error enviando a Facebook CAPI:", error);
+        this.logger.error('Error enviando a Facebook CAPI', error?.stack);
     }
   }
 }

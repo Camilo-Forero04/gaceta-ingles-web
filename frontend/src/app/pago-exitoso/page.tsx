@@ -9,27 +9,38 @@ function GraciasContent() {
   const searchParams = useSearchParams();
   const transactionId = searchParams.get("id");
 
-  // 🟢 CORRECCIÓN: Usamos la librería, no window.fbq directo
   useEffect(() => {
-    if (transactionId) {
-      import("react-facebook-pixel")
-        .then((module) => {
-          const ReactPixel = module.default;
-          
-          // Init opcional por seguridad (aunque el wrapper ya lo hace)
-          // ReactPixel.init("TU_PIXEL_ID"); 
-          
-          ReactPixel.track("Purchase", {
+    if (!transactionId) return;
+
+    // Evitar duplicados si el usuario recarga la página
+    const dedupKey = `purchase_tracked_${transactionId}`;
+    if (sessionStorage.getItem(dedupKey)) return;
+
+    // Usamos fbq directo para poder pasar eventID = id de transacción.
+    // El backend envía el mismo event_id por CAPI, así Meta deduplica ambos eventos.
+    let attempts = 0;
+    const trackPurchase = () => {
+      const fbq = (window as any).fbq;
+      if (typeof fbq === "function") {
+        fbq(
+          "track",
+          "Purchase",
+          {
             currency: "COP",
-            value: 26700, 
-            content_name: "La Gaceta del Inglés (Preventa)",
-            order_id: transactionId 
-          });
-          
-          console.log("✅ Evento Purchase enviado vía librería para:", transactionId);
-        })
-        .catch((error) => console.error("Error cargando Pixel:", error));
-    }
+            value: 49000,
+            content_name: "La Gaceta del Inglés - Desbloquea tu Fluidez",
+            order_id: transactionId,
+          },
+          { eventID: transactionId },
+        );
+        sessionStorage.setItem(dedupKey, "1");
+      } else if (attempts < 10) {
+        // El Pixel puede tardar en inicializarse; reintentamos brevemente
+        attempts += 1;
+        setTimeout(trackPurchase, 500);
+      }
+    };
+    trackPurchase();
   }, [transactionId]);
 
   return (
@@ -44,7 +55,7 @@ function GraciasContent() {
         </div>
 
         <h2 className="text-3xl font-extrabold text-gray-900 mb-2">
-          ¡Reserva Exitosa!
+          ¡Compra Exitosa!
         </h2>
         
         <p className="text-gray-500 mb-6">
@@ -62,7 +73,7 @@ function GraciasContent() {
                <span className="text-sm">🎟️</span>
             </div>
             <p className="text-sm text-gray-600">
-              Tu cupo para la preventa ha quedado 100% asegurado.
+              Tu copia del eBook ha quedado 100% asegurada.
             </p>
           </div>
 
@@ -71,7 +82,7 @@ function GraciasContent() {
                <span className="text-lg">📅</span>
             </div>
             <div className="text-sm text-gray-700">
-              El <span className="font-bold text-indigo-700 bg-indigo-100 px-2 py-0.5 rounded mx-1">1 de Diciembre</span> 
+              <span className="font-bold text-indigo-700 bg-indigo-100 px-2 py-0.5 rounded mx-1">Muy pronto</span>
               recibirás el eBook automáticamente en tu correo.
             </div>
           </div>

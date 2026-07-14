@@ -22,19 +22,21 @@ export default function HomeHero() {
         <div className="flex flex-col sm:flex-row justify-center gap-4">
           {/* Botón principal que lleva a la landing del libro */}
           <Link 
-            href="/libro" 
+            href="/ebook"
             className="px-8 py-4 text-lg font-bold rounded-full text-white bg-indigo-600 hover:bg-indigo-700 transition-all shadow-lg hover:shadow-indigo-500/30"
           >
             Conoce el Método IA SPOKEN
           </Link>
           
           {/* Botón secundario para generar comunidad */}
-          <Link 
-            href="#comunidad" 
+          <a
+            href="https://wa.me/573017014244?text=Hola%2C%20quiero%20unirme%20a%20la%20comunidad%20de%20La%20Gaceta%20del%20Ingl%C3%A9s"
+            target="_blank"
+            rel="noopener noreferrer"
             className="px-8 py-4 text-lg font-bold rounded-full text-slate-700 bg-slate-100 hover:bg-slate-200 transition-all"
           >
             Únete a la Comunidad
-          </Link>
+          </a>
         </div>
       </div>
       

@@ -22,25 +22,27 @@ export default function Footer() {
 
         {/* 2. ENLACES DE NAVEGACIÓN */}
         <nav className="flex flex-wrap justify-center gap-x-8 gap-y-4 mb-8 text-sm font-medium text-gray-400">
-          <Link href="#" className="hover:text-white transition-colors">
-            Sobre Nosotros
+          <Link href="/ebook" className="hover:text-white transition-colors">
+            El eBook
           </Link>
-          <Link href="#" className="hover:text-white transition-colors">
+          <Link href="/privacidad" className="hover:text-white transition-colors">
             Política de Privacidad
           </Link>
-          <Link href="#" className="hover:text-white transition-colors">
+          <Link href="/terminos" className="hover:text-white transition-colors">
             Términos y Condiciones
           </Link>
-          <Link href="#" className="hover:text-white transition-colors">
+          <a href="mailto:info.gaceta.ingles@gmail.com" className="hover:text-white transition-colors">
             Soporte
-          </Link>
+          </a>
         </nav>
 
         {/* 3. REDES SOCIALES */}
         <div className="flex gap-6 mb-12">
-            <a 
-            href="https://wa.me/573017014244?text=Hola..."
+            <a
+            href="https://wa.me/573017014244?text=Hola%2C%20estoy%20interesado%20en%20el%20eBook%20de%20La%20Gaceta%20del%20Ingl%C3%A9s"
             target="_blank"
+            rel="noopener noreferrer"
+            aria-label="WhatsApp"
             className="text-gray-400 hover:text-[#25D366] hover:scale-110 transition-all"
           >
             <FaWhatsapp size={22} />

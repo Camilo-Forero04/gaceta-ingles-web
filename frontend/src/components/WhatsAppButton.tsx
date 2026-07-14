@@ -3,7 +3,7 @@ import { FaWhatsapp } from "react-icons/fa";
 export default function WhatsAppButton() {
   // Configura aquí tus datos
   const PHONE_NUMBER = "573017014244"; 
-  const MESSAGE = "Hola, estoy interesado en la preventa de La Gaceta del Inglés.";
+  const MESSAGE = "Hola, estoy interesado en el eBook de La Gaceta del Inglés.";
   
   // Codificamos el mensaje para URL
   const whatsappUrl = `https://wa.me/${PHONE_NUMBER}?text=${encodeURIComponent(MESSAGE)}`;

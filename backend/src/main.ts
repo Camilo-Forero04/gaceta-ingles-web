@@ -3,14 +3,17 @@ import { AppModule } from './app.module';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  
-  // 👇 AQUÍ ESTÁ EL CÓDIGO FINAL DE CORS
+
+  const isProduction = process.env.NODE_ENV === 'production';
+
   app.enableCors({
-    origin: ['https://gacetaingles.com', 'https://www.gacetaingles.com'], // <--- DEBE SER HTTPS Y TU DOMINIO REAL
+    origin: isProduction
+      ? ['https://gacetaingles.com', 'https://www.gacetaingles.com']
+      : ['http://localhost:3000'],
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     credentials: true,
   });
 
-  await app.listen(process.env.PORT || 4000, '0.0.0.0'); 
+  await app.listen(process.env.PORT || 4000, '0.0.0.0');
 }
 bootstrap();

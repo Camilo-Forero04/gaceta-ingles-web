@@ -33,7 +33,7 @@ export default function AcademyPillars() {
   ];
 
   return (
-    <section className="bg-white py-24 border-y border-slate-100">
+    <section className="bg-white py-24 border-y border-slate-100" id="metodo">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         <div className="text-center mb-16 max-w-3xl mx-auto">

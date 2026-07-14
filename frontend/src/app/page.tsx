@@ -1,26 +1,19 @@
-import Navbar from '../components/Navbar';
-import Footer from '../components/Footer';
-import WhatsAppButton from '../components/WhatsAppButton';
-import HomeHero from '../components/HomeHero'; // Lo crearemos ahora
-import AcademyPillars from '../components/AcademyPillars'; // Lo crearemos ahora
-import FeaturedProducts from '../components/FeaturedProducts'; // Lo crearemos ahora
+import HomeHero from '../components/HomeHero';
+import AcademyPillars from '../components/AcademyPillars';
+import FeaturedProducts from '../components/FeaturedProducts';
 
+// Navbar, Footer y WhatsAppButton se renderizan globalmente en layout.tsx
 export default function Home() {
   return (
-    <main className="min-h-screen bg-white font-sans text-slate-900">
-      <Navbar />
-      
+    <div className="min-h-screen bg-white font-sans text-slate-900">
       {/* 1. La propuesta de valor de La Gaceta */}
       <HomeHero />
 
-      {/* 2. Por qué su método es diferente (IA, sin gramática aburrida) */}
+      {/* 2. Por qué el método es diferente (IA, sin gramática aburrida) */}
       <AcademyPillars />
 
-      {/* 3. Redirección a tus productos (El e-book actual) */}
+      {/* 3. Productos (el e-book actual) */}
       <FeaturedProducts />
-
-      <Footer />
-      <WhatsAppButton />
-    </main>
+    </div>
   );
 }

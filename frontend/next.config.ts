@@ -11,10 +11,8 @@ const nextConfig: NextConfig = {
     formats: ["image/avif", "image/webp"],
   },
 
-  // 3. Optimización de CSS Crítico
+  // 3. Tree Shaking de librerías grandes
   experimental: {
-    optimizeCss: true,
-    // Agregamos esto para ayudar al Tree Shaking de librerías grandes
     optimizePackageImports: ['react-icons', 'three', '@react-three/drei', '@react-three/fiber'],
   },
 };
